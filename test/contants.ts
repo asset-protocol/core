@@ -1,0 +1,1 @@
+export const ZERO_DATA = "0x"

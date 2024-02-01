@@ -5,8 +5,12 @@ import {ERC721Base} from './ERC721Base.sol';
 import {DataTypes} from '../libs/DataTypes.sol';
 import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
+import {IERC4906} from '@openzeppelin/contracts/interfaces/IERC4906.sol';
+import {ICreateModule} from '../interfaces/ICreateModule.sol';
+import {Errors} from '../libs/Errors.sol';
+import {Events} from '../libs/Events.sol';
 
-contract AssetNFTBase is ERC721, Pausable {
+contract AssetNFTBase is ERC721, Pausable, IERC4906 {
     mapping(uint256 => DataTypes.Asset) internal _assets;
     mapping(address => uint256[]) internal _publisherAssets;
     uint256 internal _assertCounter;
@@ -18,14 +22,23 @@ contract AssetNFTBase is ERC721, Pausable {
     }
 
     function _createAsset(
+        address publisher,
         DataTypes.CreateAssetData calldata data
     ) internal virtual returns (uint256) {
-        address pub = msg.sender;
-        if (data.publisher != address(0)) {
-            pub = data.publisher;
+        address pub = publisher;
+        if (pub == address(0)) {
+            revert Errors.NoAssetPublisher();
+        }
+        if (data.createModule != address(0)) {
+            (bool isOk, string memory errMsg) = ICreateModule(data.createModule).processCreate(
+                publisher,
+                _assertCounter + 1,
+                data.createModuleInitData
+            );
+            require(isOk, errMsg);
         }
         uint256 assetId = ++_assertCounter;
-        _mint(msg.sender, assetId);
+        _mint(pub, assetId);
         DataTypes.Asset memory asset = DataTypes.Asset({
             contentURI: data.contentURI,
             subscriberCount: 0,
@@ -36,5 +49,23 @@ contract AssetNFTBase is ERC721, Pausable {
         _assets[_assertCounter] = asset;
         _publisherAssets[pub].push(assetId);
         return assetId;
+    }
+
+    function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
+        _checkAssetId(tokenId);
+        return _assets[tokenId].contentURI;
+    }
+
+    function setTokenURI(uint256 assetId, string calldata contentURI) external {
+        _checkAssetId(assetId);
+        if (_ownerOf(assetId) != _msgSender()) {
+            revert Errors.NotAssetPublisher();
+        }
+        _assets[assetId].contentURI = contentURI;
+        emit MetadataUpdate(assetId);
+    }
+
+    function _checkAssetId(uint256 assetId) internal view {
+        if (_ownerOf(assetId) == address(0)) revert Errors.AssetDoesNotExist();
     }
 }

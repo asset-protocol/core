@@ -34,7 +34,7 @@ contract SubscribeNFT is ERC721Base, ISubscribeNFT {
     }
 
     function mint(address to) external override returns (uint256) {
-        if (msg.sender != HUB) revert Errors.NotHub();
+        _checkHub();
         unchecked {
             uint256 tokenId = ++_tokenIdCounter;
             _mint(to, tokenId);
@@ -70,5 +70,9 @@ contract SubscribeNFT is ERC721Base, ISubscribeNFT {
 
     function count(address subscriber) external view override returns (uint256) {
         return balanceOf(subscriber);
+    }
+
+    function _checkHub() internal view virtual {
+        if (msg.sender != HUB) revert Errors.NotHub();
     }
 }

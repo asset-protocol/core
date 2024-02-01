@@ -1,6 +1,6 @@
 import { DeployCtx, deployContracts, deployer, user, userAddress } from "../setup.spec";
-import { AssetHub, EmptySubscribeModule__factory } from "../../typechain-types";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { AssetHub, EmptySubscribeModule__factory, Events__factory } from "../../typechain-types";
+import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ZeroAddress } from "ethers";
 import { ERRORS } from "../helpers/errors";
@@ -18,11 +18,16 @@ describe("Subcribe to Asset", async function () {
       contentURI: "https://www.google.com",
       subscribeModule: ZeroAddress,
       subscribeModuleInitData: ZERO_DATA,
+      createModule: ZeroAddress,
+      createModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
   })
 
   it("should subscribe to asset", async function () {
-    await expect(await assetHub.subscribe(firstAssetId, ZERO_DATA)).to.not.be.reverted
+    const bt = await time.latest()
+    await expect(await assetHub.subscribe(firstAssetId, ZERO_DATA))
+      .to.be.emit(assetHub, "Subscribed")
+      .withArgs(userAddress, userAddress, 1, ZERO_DATA, bt + 1)
     expect(await assetHub.totalSubscribers(firstAssetId)).to.be.equal(1)
     expect(await assetHub.subscribedCount(firstAssetId, user)).to.be.equal(1)
     const nft = await assetHub.subscribeNFTContract(firstAssetId)
@@ -71,6 +76,8 @@ describe("Subcribe to Asset", async function () {
       contentURI: "https://www.google.com",
       subscribeModule: smAdrr,
       subscribeModuleInitData: ZERO_DATA,
+      createModule: ZeroAddress,
+      createModuleInitData: ZERO_DATA,
     })).to.be.revertedWithCustomError(assetHub, ERRORS.SubscribeModuleNotWhitelisted)
   })
 
@@ -86,6 +93,8 @@ describe("Subcribe to Asset", async function () {
       contentURI: "https://www.google.com",
       subscribeModule: smAdrr,
       subscribeModuleInitData: ZERO_DATA,
+      createModule: ZeroAddress,
+      createModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
   })
 })

@@ -19,6 +19,7 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
     address internal _subscribeNFTImpl;
 
     mapping(address => bool) internal _subscribeModuleWhitelisted;
+    mapping(address => bool) internal _createModuleWhitelisted;
 
     error InvalidSubscribeNFTImpl();
 
@@ -35,6 +36,15 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
         _subscribeNFTImpl = subscribeNFTImpl;
     }
 
+    function createModuleWhitelist(address createModule, bool whitelist) external onlyOwner {
+        _createModuleWhitelisted[createModule] = whitelist;
+        emit Events.CreateModuleWhitelisted(createModule, whitelist, block.timestamp);
+    }
+
+    function isCreateModuleWhitelisted(address createModule) external view returns (bool) {
+        return _createModuleWhitelisted[createModule];
+    }
+
     function create(
         DataTypes.CreateAssetData calldata data
     ) external override(IAssetHub) whenNotPaused returns (uint256) {
@@ -43,14 +53,18 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
                 revert Errors.SubscribeModuleNotWhitelisted();
             }
         }
-        return _createAsset(data);
-    }
-
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721, IERC721Metadata) returns (string memory) {
-        _checkAssetId(tokenId);
-        return _assets[tokenId].contentURI;
+        if (data.createModule != address(0)) {
+            if (!_createModuleWhitelisted[data.createModule]) {
+                revert Errors.CreateModuleNotWhitelisted();
+            }
+        }
+        address pb = data.publisher;
+        if (pb != address(0)) {
+            _checkOwner();
+        } else {
+            pb = _msgSender();
+        }
+        return _createAsset(pb, data);
     }
 
     function subscribeModuleWhitelist(address subscribeModule, bool whitelist) external onlyOwner {
@@ -137,17 +151,14 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
         );
     }
 
-    function _checkAssetId(uint256 assetId) internal view {
-        if (_ownerOf(assetId) == address(0)) revert Errors.AssetDoesNotExist();
-    }
-
     function _deploySubscribeNFT(uint256 assetId, address publisher) private returns (address) {
         if (_subscribeNFTImpl == address(0)) {
             revert InvalidSubscribeNFTImpl();
         }
         address subscribeNFT = Clones.clone(_subscribeNFTImpl);
-        string memory subscribeNFTName = string(
-            string.concat(Strings.toString(assetId), Constants.SUBSCRIBE_NFT_NAME_SUFFIX)
+        string memory subscribeNFTName = string.concat(
+            Strings.toString(assetId),
+            Constants.SUBSCRIBE_NFT_NAME_SUFFIX
         );
         string memory subscribeNFTSymbol = string(
             abi.encodePacked(Strings.toString(assetId), Constants.COLLECT_NFT_SYMBOL_SUFFIX)

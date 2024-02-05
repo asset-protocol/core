@@ -28,6 +28,7 @@ describe("Create Asset", async () => {
     expect(await assetHub.tokenURI(1)).to.be.equal("https://www.google.com")
   })
 
+
   it("should not allow create asset with invalid publisher", async function () {
     const thirdUser = accounts[2]
     await expect(assetHub.create({

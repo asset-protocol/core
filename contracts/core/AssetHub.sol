@@ -9,6 +9,7 @@ import {IERC721Metadata} from '@openzeppelin/contracts/interfaces/IERC721Metadat
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
 import {ISubscribeNFT} from '../interfaces/ISubscriberNFT.sol';
 import {ISubscribeModule} from '../interfaces/ISubscribeModule.sol';
+import {ITokenTransfer} from '../interfaces/ITokenTransfer.sol';
 import {AssetNFTBase} from '../base/AssetNFTBase.sol';
 import {Events} from '../libs/Events.sol';
 import {Errors} from '../libs/Errors.sol';
@@ -16,10 +17,12 @@ import {Constants} from '../libs/Constants.sol';
 import {DataTypes} from '../libs/DataTypes.sol';
 
 contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
+    bool private _initialized;
     address internal _subscribeNFTImpl;
+    address internal _defaultToken;
+    address internal _tokenTransfer;
 
     mapping(address => bool) internal _subscribeModuleWhitelisted;
-    mapping(address => bool) internal _createModuleWhitelisted;
 
     error InvalidSubscribeNFTImpl();
 
@@ -29,20 +32,22 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
         address admin
     ) AssetNFTBase(name, symbol) Ownable(admin) {}
 
-    function setSubscribeNFTImpl(address subscribeNFTImpl) external onlyOwner {
-        if (subscribeNFTImpl == address(0)) {
+    function initialize(
+        address subscribeNFT,
+        address tokenTransfer,
+        address defaultToken
+    ) external {
+        if (tokenTransfer == address(0)) {
+            revert Errors.InitParamsInvalid();
+        }
+        _tokenTransfer = tokenTransfer;
+
+        if (subscribeNFT == address(0)) {
             revert InvalidSubscribeNFTImpl();
         }
-        _subscribeNFTImpl = subscribeNFTImpl;
-    }
-
-    function createModuleWhitelist(address createModule, bool whitelist) external onlyOwner {
-        _createModuleWhitelisted[createModule] = whitelist;
-        emit Events.CreateModuleWhitelisted(createModule, whitelist, block.timestamp);
-    }
-
-    function isCreateModuleWhitelisted(address createModule) external view returns (bool) {
-        return _createModuleWhitelisted[createModule];
+        _subscribeNFTImpl = subscribeNFT;
+        _defaultToken = defaultToken;
+        _initialized = true;
     }
 
     function create(
@@ -53,21 +58,25 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
                 revert Errors.SubscribeModuleNotWhitelisted();
             }
         }
-        if (data.createModule != address(0)) {
-            if (!_createModuleWhitelisted[data.createModule]) {
-                revert Errors.CreateModuleNotWhitelisted();
-            }
-        }
+
         address pb = data.publisher;
+        address sender = address(0);
         if (pb != address(0)) {
             _checkOwner();
+            sender = owner(); // use owner as the sender
         } else {
             pb = _msgSender();
+            sender = pb;
         }
-        return _createAsset(pb, data);
+        uint256 res = _createAsset(pb, data);
+        ITokenTransfer(_tokenTransfer).safeTransferERC20From(_defaultToken, sender, 100);
+        return res;
     }
 
-    function subscribeModuleWhitelist(address subscribeModule, bool whitelist) external onlyOwner {
+    function subscribeModuleWhitelist(
+        address subscribeModule,
+        bool whitelist
+    ) external whenNotPaused onlyOwner {
         _subscribeModuleWhitelisted[subscribeModule] = whitelist;
         emit Events.SubscribeModuleWhitelisted(subscribeModule, whitelist, block.timestamp);
     }

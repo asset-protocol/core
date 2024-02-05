@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 import {ERC721Base} from './ERC721Base.sol';
 import {DataTypes} from '../libs/DataTypes.sol';
 import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {IERC4906} from '@openzeppelin/contracts/interfaces/IERC4906.sol';
-import {ICreateModule} from '../interfaces/ICreateModule.sol';
 import {Errors} from '../libs/Errors.sol';
 import {Events} from '../libs/Events.sol';
 
@@ -29,14 +29,7 @@ contract AssetNFTBase is ERC721, Pausable, IERC4906 {
         if (pub == address(0)) {
             revert Errors.NoAssetPublisher();
         }
-        if (data.createModule != address(0)) {
-            (bool isOk, string memory errMsg) = ICreateModule(data.createModule).processCreate(
-                publisher,
-                _assertCounter + 1,
-                data.createModuleInitData
-            );
-            require(isOk, errMsg);
-        }
+
         uint256 assetId = ++_assertCounter;
         _mint(pub, assetId);
         DataTypes.Asset memory asset = DataTypes.Asset({

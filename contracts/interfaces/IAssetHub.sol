@@ -22,4 +22,6 @@ interface IAssetHub is IERC721Metadata {
         address from,
         address to
     ) external;
+
+    function getTokenTransfer() external view returns (address);
 }

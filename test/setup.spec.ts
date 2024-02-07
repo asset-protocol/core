@@ -1,8 +1,7 @@
 import { ethers } from 'hardhat';
-import { AssetHub, AssetHub__factory, EmtpyToken, EmtpyToken__factory, SubscribeNFT, SubscribeNFT__factory, TokenTransfer__factory, UpgradeableProxy, UpgradeableProxy__factory } from "../typechain-types";
+import { AssetHub, AssetHub__factory, SubscribeNFT, SubscribeNFT__factory, TokenTransfer__factory, UpgradeableProxy, UpgradeableProxy__factory } from "../typechain-types";
 import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
-import { Address } from 'cluster';
 
 export let accounts: Signer[];
 export let deployer: Signer;
@@ -14,19 +13,19 @@ export type DeployCtx = {
   assetHubImpl: AssetHub
   hubProxy: UpgradeableProxy
   subscribeNFTImpl: SubscribeNFT
-  tokenImpl: EmtpyToken
+  tokenImpl: Edu3ScoreToken
 }
 
 export async function deployContracts(): Promise<DeployCtx> {
-  const tokenImpl = await new EmtpyToken__factory(deployer).deploy("EmptyToken", "ET")
-  await tokenImpl.transfer(userAddress, 1000)
-  await tokenImpl.transfer(deployerAddress, 1000)
+  const tokenImpl = await new Tes(deployer).deploy("EmptyToken", "ET")
+  await tokenImpl.transfer(userAddress, 10000)
+  await tokenImpl.transfer(deployerAddress, 10000)
 
   const assetHubImpl = await new AssetHub__factory(deployer).deploy("AssetHub_TEST", "AHT", await deployer.getAddress())
   const tt = await new TokenTransfer__factory(deployer).deploy(await assetHubImpl.getAddress())
-  await tokenImpl.transfer(await tt.getAddress(), 1000)
-  await tokenImpl.connect(user).approve(await tt.getAddress(), 1000)
-  await tokenImpl.connect(deployer).approve(await tt.getAddress(), 1000)
+  await tokenImpl.transfer(await tt.getAddress(), 10000)
+  await tokenImpl.connect(user).approve(await tt.getAddress(), 10000)
+  await tokenImpl.connect(deployer).approve(await tt.getAddress(), 10000)
 
   const subscribeNFTImpl = await new SubscribeNFT__factory(deployer).deploy(await assetHubImpl.getAddress())
   assetHubImpl.initialize(await subscribeNFTImpl.getAddress(), await tt.getAddress(), await tokenImpl.getAddress())

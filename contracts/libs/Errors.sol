@@ -12,5 +12,4 @@ library Errors {
     error AssetDoesNotExist();
     error CallerNotSubscribeNFT();
     error SubscribeModuleNotWhitelisted();
-    error CreateModuleNotWhitelisted();
 }

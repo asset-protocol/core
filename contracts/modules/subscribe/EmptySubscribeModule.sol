@@ -9,7 +9,15 @@ contract EmptySubscribeModule is ISubscribeModule {
         address,
         uint256,
         bytes calldata
-    ) external pure override returns (bool, string memory) {
-        return (true, '');
+    ) external pure override returns (bytes memory) {
+        return '';
+    }
+
+    function initialModule(
+        address,
+        uint256,
+        bytes calldata
+    ) external pure override returns (bytes memory) {
+        return '';
     }
 }

@@ -9,7 +9,13 @@ contract RevertSubscribeModule is ISubscribeModule {
         address,
         uint256,
         bytes calldata
-    ) external pure override returns (bool, string memory) {
+    ) external pure override returns (bytes memory) {
         revert('RevertSubscribeModule');
     }
+
+    function initialModule(
+        address,
+        uint256,
+        bytes calldata
+    ) external override returns (bytes memory) {}
 }

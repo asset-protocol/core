@@ -14,13 +14,6 @@ library Events {
         uint256 timestamp
     );
 
-
-    event CreateModuleWhitelisted(
-        address createModule,
-        bool whitelisted,
-        uint256 timestamp
-    );
-
     /**
      * @dev Emitted when a subscribe module is added to or removed from the whitelist.
      *

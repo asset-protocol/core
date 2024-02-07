@@ -14,8 +14,6 @@ library DataTypes {
         string contentURI;
         address subscribeModule;
         bytes subscribeModuleInitData;
-        address createModule;
-        bytes createModuleInitData;
     }
 
     struct Asset {
@@ -24,5 +22,10 @@ library DataTypes {
         address subscribeModule;
         address subscribeNFT;
         uint timestamp;
+    }
+
+    struct AssetGroupData {
+        string metadataURI;
+        uint256[] assets;
     }
 }

@@ -69,7 +69,7 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
             sender = pb;
         }
         uint256 res = _createAsset(pb, data);
-        ITokenTransfer(_tokenTransfer).safeTransferERC20From(_defaultToken, sender, 100);
+        ITokenTransfer(_tokenTransfer).safeTransferErc20From(_defaultToken, sender, pb, 100);
         return res;
     }
 
@@ -97,13 +97,12 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
             if (!_subscribeModuleWhitelisted[subscribeModule]) {
                 revert Errors.SubscribeModuleNotWhitelisted();
             }
-            (bool res, string memory errMsg) = ISubscribeModule(subscribeModule).processSubscribe(
+            ISubscribeModule(subscribeModule).processSubscribe(
                 msg.sender,
                 ownerOf(assetId),
                 assetId,
                 subscribeModuleData
             );
-            require(res, errMsg);
         }
 
         if (subscirbeNFT == address(0)) {
@@ -139,6 +138,10 @@ contract AssetHub is AssetNFTBase, Ownable, IAssetHub {
 
     function subscribeNFTContract(uint256 assetId) external view returns (address) {
         return _assets[assetId].subscribeNFT;
+    }
+
+    function getTokenTransfer() external view override returns (address) {
+        return _tokenTransfer;
     }
 
     function emitSubscribeNFTTransferEvent(

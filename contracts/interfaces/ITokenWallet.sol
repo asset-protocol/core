@@ -9,4 +9,6 @@ interface ITokenWallet {
     function withdrawAll() external;
 
     function balanceOf(address account) external view returns (uint256);
+
+    function verifyErc20Currency(address currency) external returns (bool);
 }

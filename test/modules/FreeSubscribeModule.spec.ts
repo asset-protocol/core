@@ -6,7 +6,7 @@ import { ZeroAddress } from "ethers";
 import { ERRORS } from "../helpers/errors";
 import { ZERO_DATA } from "../contants";
 
-describe("Subcribe to Asset", async function () {
+describe("Subcribe to Asset with free module", async function () {
   let cts: DeployCtx = {} as any
   let assetHub: AssetHub
   const firstAssetId = 1
@@ -18,8 +18,6 @@ describe("Subcribe to Asset", async function () {
       contentURI: "https://www.google.com",
       subscribeModule: ZeroAddress,
       subscribeModuleInitData: ZERO_DATA,
-      createModule: ZeroAddress,
-      createModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
   })
 
@@ -76,8 +74,6 @@ describe("Subcribe to Asset", async function () {
       contentURI: "https://www.google.com",
       subscribeModule: smAdrr,
       subscribeModuleInitData: ZERO_DATA,
-      createModule: ZeroAddress,
-      createModuleInitData: ZERO_DATA,
     })).to.be.revertedWithCustomError(assetHub, ERRORS.SubscribeModuleNotWhitelisted)
   })
 
@@ -93,8 +89,6 @@ describe("Subcribe to Asset", async function () {
       contentURI: "https://www.google.com",
       subscribeModule: smAdrr,
       subscribeModuleInitData: ZERO_DATA,
-      createModule: ZeroAddress,
-      createModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
   })
 })

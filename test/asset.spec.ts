@@ -20,8 +20,6 @@ describe("Create Asset", async () => {
       contentURI: "https://www.google.com",
       subscribeModule: ZeroAddress,
       subscribeModuleInitData: ZERO_DATA,
-      createModule: ZeroAddress,
-      createModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
     expect(await assetHub.balanceOf(userAddress)).to.be.equal(1)
     expect(await assetHub.count(userAddress)).to.be.equal(1)
@@ -36,8 +34,6 @@ describe("Create Asset", async () => {
       contentURI: "https://www.google.com",
       subscribeModule: ZeroAddress,
       subscribeModuleInitData: "0x",
-      createModule: ZeroAddress,
-      createModuleInitData: ZERO_DATA,
     })).to.be.revertedWithCustomError(assetHub, ERRORS.OwnableInvalidOwner)
       .withArgs(await user.getAddress())
   })
@@ -50,8 +46,6 @@ describe("Create Asset", async () => {
       contentURI: "https://www.google.com",
       subscribeModule: ZeroAddress,
       subscribeModuleInitData: "0x",
-      createModule: ZeroAddress,
-      createModuleInitData: ZERO_DATA,
     })).to.be.not.reverted
   })
 })

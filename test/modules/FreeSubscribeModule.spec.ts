@@ -1,5 +1,5 @@
 import { DeployCtx, deployContracts, deployer, user, userAddress } from "../setup.spec";
-import { AssetHub, EmptySubscribeModule__factory, Events__factory } from "../../typechain-types";
+import { AssetHub, EmptyCollectModule__factory, Events__factory } from "../../typechain-types";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ZeroAddress } from "ethers";
@@ -9,86 +9,109 @@ import { ZERO_DATA } from "../contants";
 describe("Subcribe to Asset with free module", async function () {
   let cts: DeployCtx = {} as any
   let assetHub: AssetHub
-  const firstAssetId = 1
+  let firstAssetId = BigInt(-1)
+  let assetCollectNFT = ""
   beforeEach(async function () {
     cts = await loadFixture(deployContracts)
-    assetHub = cts.assetHubImpl.connect(user)
-    await expect(assetHub.create({
+    assetHub = cts.assetHub.connect(user)
+    const createData = {
       publisher: ZeroAddress,
       contentURI: "https://www.google.com",
-      subscribeModule: ZeroAddress,
-      subscribeModuleInitData: ZERO_DATA,
-    })).to.not.be.reverted
+      collectModule: ZeroAddress,
+      collectModuleInitData: ZERO_DATA,
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
+    }
+    firstAssetId = await assetHub.create.staticCall(createData)
+    await expect(assetHub.create(createData)).to.not.be.reverted
+    assetCollectNFT = await assetHub.assetCollectNFT(firstAssetId)
   })
 
-  it("should subscribe to asset", async function () {
+  it("should collect to asset", async function () {
     const bt = await time.latest()
-    await expect(await assetHub.subscribe(firstAssetId, ZERO_DATA))
-      .to.be.emit(assetHub, "Subscribed")
-      .withArgs(userAddress, userAddress, 1, ZERO_DATA, bt + 1)
-    expect(await assetHub.totalSubscribers(firstAssetId)).to.be.equal(1)
-    expect(await assetHub.subscribedCount(firstAssetId, user)).to.be.equal(1)
-    const nft = await assetHub.subscribeNFTContract(firstAssetId)
+    const collectTokenId = await assetHub.collect.staticCall(firstAssetId, ZERO_DATA)
+    await expect(await assetHub.collect(firstAssetId, ZERO_DATA))
+      .to.be.emit(assetHub, "Collected")
+      .withArgs(
+        firstAssetId,
+        userAddress,
+        userAddress,
+        assetCollectNFT,
+        collectTokenId,
+        ZeroAddress,
+        ZERO_DATA,
+        bt + 1
+      )
+    expect(await assetHub.assetCollectCount(firstAssetId)).to.be.equal(1)
+    expect(await assetHub.userCollectCount(firstAssetId, user)).to.be.equal(1)
+    const nft = await assetHub.assetCollectNFT(firstAssetId)
     expect(nft).to.not.be.equal(ZeroAddress)
   })
 
-  it("should revert when subscribe to asset that does not exist", async function () {
-    await expect(assetHub.subscribe(999, ZERO_DATA))
+  it("should revert when collect to asset that does not exist", async function () {
+    await expect(assetHub.collect(999, ZERO_DATA))
       .to.be.revertedWithCustomError(assetHub, ERRORS.AssetDoesNotExist)
   })
 
-  // test set subscribe module whitelist
-  it("should revert when set subscribe module whitelist by non admin", async function () {
-    const sm = await new EmptySubscribeModule__factory(user).deploy()
+  // test set collect module whitelist
+  it("should revert when set collect module whitelist by non admin", async function () {
+    const sm = await new EmptyCollectModule__factory(user).deploy()
     const smAdrr = await sm.getAddress()
-    const assetHub = cts.assetHubImpl.connect(user)
-    await expect(assetHub.subscribeModuleWhitelist(smAdrr, true))
+    const assetHub = cts.assetHub.connect(user)
+    await expect(assetHub.collectModuleWhitelist(smAdrr, true))
       .to.be.revertedWithCustomError(assetHub, ERRORS.OwnableUnauthorizedAccount)
       .withArgs(userAddress)
   })
 
-  it("should set subscribe module whitelist by admin", async function () {
-    const sm = await new EmptySubscribeModule__factory(user).deploy()
+  it("should set collect module whitelist by admin", async function () {
+    const sm = await new EmptyCollectModule__factory(user).deploy()
     const smAdrr = await sm.getAddress()
-    const adminAssertHub = cts.assetHubImpl.connect(deployer)
-    await expect(adminAssertHub.subscribeModuleWhitelist(smAdrr, true)).to.not.be.reverted
+    const adminAssertHub = cts.assetHub.connect(deployer)
+    await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true)).to.not.be.reverted
   })
 
-  it("isSubscribeModuleWhitelisted should return true after set subscribe module whitelist", async function () {
-    const adminAssertHub = cts.assetHubImpl.connect(deployer)
-    const sm = await new EmptySubscribeModule__factory(user).deploy()
+  it("isCollectModuleWhitelisted should return true after set collect module whitelist", async function () {
+    const adminAssertHub = cts.assetHub.connect(deployer)
+    const sm = await new EmptyCollectModule__factory(user).deploy()
     const smAdrr = await sm.getAddress()
 
-    expect(await adminAssertHub.isSubscribeModuleWhitelisted(smAdrr)).to.be.false
-    await expect(adminAssertHub.subscribeModuleWhitelist(smAdrr, true))
+    expect(await adminAssertHub.isCollectModuleWhitelisted(smAdrr)).to.be.false
+    await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true))
       .to.not.be.reverted
-    expect(await adminAssertHub.isSubscribeModuleWhitelisted(smAdrr)).to.be.true
+    expect(await adminAssertHub.isCollectModuleWhitelisted(smAdrr)).to.be.true
   })
 
-  it("should revert when create asset with a subscribe module that is not whitelisted", async function () {
-    const sm = await new EmptySubscribeModule__factory(user).deploy()
+  it("should revert when create asset with a collect module that is not whitelisted", async function () {
+    const sm = await new EmptyCollectModule__factory(user).deploy()
     const smAdrr = await sm.getAddress()
-    const assetHub = cts.assetHubImpl.connect(user)
+    const assetHub = cts.assetHub.connect(user)
     await expect(assetHub.create({
       publisher: ZeroAddress,
       contentURI: "https://www.google.com",
-      subscribeModule: smAdrr,
-      subscribeModuleInitData: ZERO_DATA,
-    })).to.be.revertedWithCustomError(assetHub, ERRORS.SubscribeModuleNotWhitelisted)
+      collectModule: smAdrr,
+      collectModuleInitData: ZERO_DATA,
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
+    })).to.be.revertedWithCustomError(assetHub, ERRORS.CollectModuleNotWhitelisted)
   })
 
-  it("should created asset with a subscribe module that is whitelisted", async function () {
-    const sm = await new EmptySubscribeModule__factory(user).deploy()
+  it("should created asset with a collect module that is whitelisted", async function () {
+    const sm = await new EmptyCollectModule__factory(user).deploy()
     const smAdrr = await sm.getAddress()
 
-    const adminAssertHub = cts.assetHubImpl.connect(deployer)
-    await expect(adminAssertHub.subscribeModuleWhitelist(smAdrr, true)).to.not.be.reverted
+    const adminAssertHub = cts.assetHub.connect(deployer)
+    await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true)).to.not.be.reverted
 
     await expect(assetHub.create({
       publisher: ZeroAddress,
       contentURI: "https://www.google.com",
-      subscribeModule: smAdrr,
-      subscribeModuleInitData: ZERO_DATA,
+      collectModule: smAdrr,
+      collectModuleInitData: ZERO_DATA,
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
   })
 })

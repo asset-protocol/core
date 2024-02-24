@@ -1,39 +1,40 @@
-import { ethers } from 'hardhat';
-import { AssetHub, AssetHub__factory, SubscribeNFT, SubscribeNFT__factory, TokenTransfer__factory, UpgradeableProxy, UpgradeableProxy__factory } from "../typechain-types";
+import { ethers, upgrades } from 'hardhat';
+import "@openzeppelin/hardhat-upgrades";
+import { AssetHub, AssetHub__factory, CollectNFT, CollectNFT__factory, TestToken, TestToken__factory, TokenTransfer__factory, UUPSUpgradeable, UUPSUpgradeable__factory } from "../typechain-types";
 import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
 
 export let accounts: Signer[];
 export let deployer: Signer;
 export let user: Signer;
+export let user3: Signer;
 export let userAddress: string;
 export let deployerAddress: string;
 
 export type DeployCtx = {
-  assetHubImpl: AssetHub
-  hubProxy: UpgradeableProxy
-  subscribeNFTImpl: SubscribeNFT
-  tokenImpl: Edu3ScoreToken
+  assetHub: AssetHub
+  collectNFTImpl: CollectNFT
+  tokenImpl: TestToken
 }
 
 export async function deployContracts(): Promise<DeployCtx> {
-  const tokenImpl = await new Tes(deployer).deploy("EmptyToken", "ET")
-  await tokenImpl.transfer(userAddress, 10000)
-  await tokenImpl.transfer(deployerAddress, 10000)
+  const tokenImpl = await new TestToken__factory(deployer).deploy("EmptyToken", "ET")
 
-  const assetHubImpl = await new AssetHub__factory(deployer).deploy("AssetHub_TEST", "AHT", await deployer.getAddress())
-  const tt = await new TokenTransfer__factory(deployer).deploy(await assetHubImpl.getAddress())
-  await tokenImpl.transfer(await tt.getAddress(), 10000)
-  await tokenImpl.connect(user).approve(await tt.getAddress(), 10000)
-  await tokenImpl.connect(deployer).approve(await tt.getAddress(), 10000)
+  const assetHubImpl = await ethers.getContractFactory("AssetHub")
 
-  const subscribeNFTImpl = await new SubscribeNFT__factory(deployer).deploy(await assetHubImpl.getAddress())
-  assetHubImpl.initialize(await subscribeNFTImpl.getAddress(), await tt.getAddress(), await tokenImpl.getAddress())
-  const hubProxy = await new UpgradeableProxy__factory(deployer).deploy(await assetHubImpl.getAddress(), deployerAddress, "0x")
+  const assethubProxy = await upgrades.deployProxy(assetHubImpl, [], {
+    kind: "uups",
+    initializer: false,
+  })
+
+  await assethubProxy.waitForDeployment()
+
+  const collectNFTImpl = await new CollectNFT__factory(deployer).deploy(await assethubProxy.getAddress())
+  assethubProxy.initialize("AssetHub_TEST", "AHT", await deployer.getAddress(), await collectNFTImpl.getAddress(), ZeroAddress)
+  const assetHub = await ethers.getContractAt("AssetHub", assethubProxy, deployer)
   return {
-    assetHubImpl,
-    hubProxy,
-    subscribeNFTImpl,
+    assetHub,
+    collectNFTImpl,
     tokenImpl,
   }
 }
@@ -42,6 +43,7 @@ before(async function () {
   accounts = await ethers.getSigners();
   deployer = accounts[0];
   user = accounts[1];
+  user3 = accounts[2];
   deployerAddress = await deployer.getAddress()
   userAddress = await user.getAddress()
 

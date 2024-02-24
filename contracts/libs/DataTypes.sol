@@ -9,23 +9,34 @@ library DataTypes {
         Paused
     }
 
-    struct CreateAssetData {
+    struct AssetCreateData {
         address publisher;
         string contentURI;
-        address subscribeModule;
-        bytes subscribeModuleInitData;
+        bytes assetCreateModuleData;
+        address collectModule;
+        bytes collectModuleInitData;
+        address gatedModule;
+        bytes gatedModuleInitData;
+    }
+
+    struct AssetCreatedEventData {
+        string contentURI;
+        address collectNFT;
+        address collectModule;
+        address gatedModule;
+    }
+
+    struct AssetUpdateData {
+        address collectModule;
+        address gatedModule;
     }
 
     struct Asset {
         string contentURI;
-        uint256 subscriberCount;
-        address subscribeModule;
-        address subscribeNFT;
+        uint256 collectCount;
+        address collectModule;
+        address collectNFT;
+        address gatedModule;
         uint timestamp;
-    }
-
-    struct AssetGroupData {
-        string metadataURI;
-        uint256[] assets;
     }
 }

@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {ISubscribeModule} from '../../interfaces/ISubscribeModule.sol';
+import {ICollectModule} from '../../interfaces/ICollectModule.sol';
 
-contract EmptySubscribeModule is ISubscribeModule {
-    function processSubscribe(
+contract RevertCollectModule is ICollectModule {
+    function processCollect(
         address,
         address,
         uint256,
         bytes calldata
     ) external pure override returns (bytes memory) {
-        return '';
+        revert('RevertCollectModule');
     }
 
     function initialModule(
         address,
         uint256,
         bytes calldata
-    ) external pure override returns (bytes memory) {
-        return '';
-    }
+    ) external override returns (bytes memory) {}
 }

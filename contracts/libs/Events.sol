@@ -2,51 +2,55 @@
 
 pragma solidity ^0.8.20;
 
+import {DataTypes} from './DataTypes.sol';
+
 library Events {
     event AssetCreated(
-        uint256 indexed publisher,
+        address indexed publisher,
         uint256 indexed assetId,
-        string contentURI,
-        address collectModule,
-        bytes collectModuleReturnData,
-        address referenceModule,
-        bytes referenceModuleReturnData,
-        uint256 timestamp
+        uint256 indexed timestamp,
+        DataTypes.AssetCreatedEventData data
     );
 
+    event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data, uint256 timestamp);
+
+    event AssetMetadataUpdate(uint256 indexed assetId, string contentURI, uint256 timestamp);
+
     /**
-     * @dev Emitted when a subscribe module is added to or removed from the whitelist.
+     * @dev Emitted when a collect module is added to or removed from the whitelist.
      *
-     * @param subscribeModule The address of the subscribe module.
-     * @param whitelisted Whether or not the subscribe module is being added to the whitelist.
+     * @param collectModule The address of the collect module.
+     * @param whitelisted Whether or not the collect module is being added to the whitelist.
      * @param timestamp The current block timestamp.
      */
-    event SubscribeModuleWhitelisted(
-        address indexed subscribeModule,
+    event CollectModuleWhitelisted(
+        address indexed collectModule,
         bool indexed whitelisted,
         uint256 timestamp
     );
-    
 
-    event SubscribeNFTDeployed(
+    event CollectNFTDeployed(
         uint256 indexed assetId,
-        address indexed subscribeNFT,
+        address indexed collectNFT,
         uint256 timestamp
     );
 
-    event SubscribeNFTTransferred(
+    event CollectNFTTransfered(
         address indexed publiser,
         uint256 indexed assetId,
-        uint256 indexed subscribeNFTId,
+        uint256 indexed collectNFTTokenId,
         address from,
         address to,
         uint256 timestamp
     );
 
-    event Subscribed(
-        address indexed subscriber,
-        address indexed publiser,
+    event Collected(
         uint256 indexed assetId,
+        address indexed collector,
+        address indexed publisher,
+        address collectNFT,
+        uint256 collectNFTTokenId,
+        address collectModule,
         bytes collectModuleData,
         uint256 timestamp
     );

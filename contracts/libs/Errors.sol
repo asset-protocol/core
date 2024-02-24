@@ -10,6 +10,6 @@ library Errors {
     error Initialized();
     error TokenDoesNotExist();
     error AssetDoesNotExist();
-    error CallerNotSubscribeNFT();
-    error SubscribeModuleNotWhitelisted();
+    error CallerNotCollectNFT();
+    error CollectModuleNotWhitelisted();
 }

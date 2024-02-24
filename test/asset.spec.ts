@@ -14,12 +14,15 @@ describe("Create Asset", async () => {
   })
 
   it("should create asset", async function () {
-    assetHub = cts.assetHubImpl.connect(user)
+    assetHub = cts.assetHub.connect(user)
     await expect(assetHub.create({
       publisher: ZeroAddress,
       contentURI: "https://www.google.com",
-      subscribeModule: ZeroAddress,
-      subscribeModuleInitData: ZERO_DATA,
+      collectModule: ZeroAddress,
+      collectModuleInitData: ZERO_DATA,
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
     })).to.not.be.reverted
     expect(await assetHub.balanceOf(userAddress)).to.be.equal(1)
     expect(await assetHub.count(userAddress)).to.be.equal(1)
@@ -32,20 +35,26 @@ describe("Create Asset", async () => {
     await expect(assetHub.create({
       publisher: thirdUser,
       contentURI: "https://www.google.com",
-      subscribeModule: ZeroAddress,
-      subscribeModuleInitData: "0x",
+      collectModule: ZeroAddress,
+      collectModuleInitData: "0x",
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
     })).to.be.revertedWithCustomError(assetHub, ERRORS.OwnableInvalidOwner)
       .withArgs(await user.getAddress())
   })
 
   it("should create asset of the third publisher with owner", async function () {
     const thirdUser = accounts[2]
-    const ownerHub = cts.assetHubImpl.connect(deployer)
+    const ownerHub = cts.assetHub.connect(deployer)
     await expect(ownerHub.create({
       publisher: thirdUser,
       contentURI: "https://www.google.com",
-      subscribeModule: ZeroAddress,
-      subscribeModuleInitData: "0x",
+      collectModule: ZeroAddress,
+      collectModuleInitData: "0x",
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
     })).to.be.not.reverted
   })
 })

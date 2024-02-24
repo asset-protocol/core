@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface ISubscribeNFT {
+interface ICollectNFT {
     function initialize(
         string calldata name_,
         string calldata symbol_,
@@ -11,5 +11,5 @@ interface ISubscribeNFT {
 
     function mint(address to) external returns (uint256);
 
-    function count(address subscriber) external view returns (uint256);
+    function count(address collector) external view returns (uint256);
 }

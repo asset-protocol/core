@@ -1,5 +1,5 @@
 export const ERRORS = {
-  SubscribeModuleNotWhitelisted: "SubscribeModuleNotWhitelisted",
+  CollectModuleNotWhitelisted: "CollectModuleNotWhitelisted",
   NotHub: "NotHub",
   OwnableUnauthorizedAccount: "OwnableUnauthorizedAccount",
   AssetDoesNotExist: "AssetDoesNotExist",

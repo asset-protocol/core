@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {ERC721Base} from '../base/ERC721Base.sol';
-import {ISubscribeNFT} from '../interfaces/ISubscriberNFT.sol';
+import {ERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
+import {ICollectNFT} from '../interfaces/ICollectNFT.sol';
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
+import {IERC721Metadata} from '@openzeppelin/contracts/interfaces/IERC721Metadata.sol';
 import {Errors} from '../libs/Errors.sol';
 
-contract SubscribeNFT is ERC721Base, ISubscribeNFT {
+contract CollectNFT is ERC721Upgradeable, ICollectNFT {
     address public immutable HUB;
 
     uint256 internal _assetId;
     address internal _publisher;
     uint256 internal _tokenIdCounter;
-
-    bool private _initialized;
 
     constructor(address hub) {
         if (hub == address(0)) revert Errors.InitParamsInvalid();
@@ -25,16 +24,20 @@ contract SubscribeNFT is ERC721Base, ISubscribeNFT {
         string calldata symbol_,
         address publisher_,
         uint256 assetId_
-    ) external override {
-        if (_initialized) revert Errors.Initialized();
-        super.__ERC721_Init(name_, symbol_);
+    ) external initializer {
+        __ERC721_init(name_, symbol_);
         _assetId = assetId_;
         _publisher = publisher_;
-        _initialized = true;
     }
 
-    function mint(address to) external override returns (uint256) {
-        _checkHub();
+    modifier onlyHub() {
+        if (msg.sender != HUB) {
+            revert Errors.NotHub();
+        }
+        _;
+    }
+
+    function mint(address to) external override onlyHub returns (uint256) {
         unchecked {
             uint256 tokenId = ++_tokenIdCounter;
             _mint(to, tokenId);
@@ -45,7 +48,7 @@ contract SubscribeNFT is ERC721Base, ISubscribeNFT {
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         address owner = _ownerOf(tokenId);
         if (owner == address(0)) revert Errors.TokenDoesNotExist();
-        return IAssetHub(HUB).tokenURI(_assetId);
+        return IERC721Metadata(HUB).tokenURI(_assetId);
     }
 
     function getAssetInfo() external view returns (address, uint256) {
@@ -58,7 +61,7 @@ contract SubscribeNFT is ERC721Base, ISubscribeNFT {
         address auth
     ) internal override returns (address) {
         address previousOwner = super._update(to, tokenId, auth);
-        IAssetHub(HUB).emitSubscribeNFTTransferEvent(
+        IAssetHub(HUB).emitCollectNFTTransferEvent(
             _publisher,
             _assetId,
             tokenId,
@@ -68,11 +71,7 @@ contract SubscribeNFT is ERC721Base, ISubscribeNFT {
         return previousOwner;
     }
 
-    function count(address subscriber) external view override returns (uint256) {
-        return balanceOf(subscriber);
-    }
-
-    function _checkHub() internal view virtual {
-        if (msg.sender != HUB) revert Errors.NotHub();
+    function count(address collector) external view override returns (uint256) {
+        return balanceOf(collector);
     }
 }

@@ -1,10 +1,10 @@
-import { DeployCtx, deployContracts, deployer, user, userAddress } from "../setup.spec";
-import { AssetHub, EmptyCollectModule__factory, Events__factory } from "../../typechain-types";
+import { DeployCtx, deployContracts, deployer, user, userAddress } from "../../setup.spec";
+import { AssetHub, EmptyCollectModule__factory, Events__factory } from "../../../typechain-types";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ZeroAddress } from "ethers";
-import { ERRORS } from "../helpers/errors";
-import { ZERO_DATA } from "../contants";
+import { ERRORS } from "../../helpers/errors";
+import { ZERO_DATA } from "../../contants";
 
 describe("Subcribe to Asset with free module", async function () {
   let cts: DeployCtx = {} as any

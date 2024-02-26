@@ -1,6 +1,6 @@
 import { ethers, upgrades } from 'hardhat';
 import "@openzeppelin/hardhat-upgrades";
-import { AssetHub, AssetHub__factory, CollectNFT, CollectNFT__factory, TestToken, TestToken__factory, TokenTransfer__factory, UUPSUpgradeable, UUPSUpgradeable__factory } from "../typechain-types";
+import { AssetHub, AssetHub__factory, CollectNFT, CollectNFT__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, TokenTransfer__factory, UUPSUpgradeable, UUPSUpgradeable__factory } from "../typechain-types";
 import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
 
@@ -10,6 +10,9 @@ export let user: Signer;
 export let user3: Signer;
 export let userAddress: string;
 export let deployerAddress: string;
+export let testToken: TestToken;
+export let testErc721: TestERC721;
+export let testErc1155: TestERC1155;
 
 export type DeployCtx = {
   assetHub: AssetHub
@@ -51,6 +54,9 @@ before(async function () {
     expect(user).to.not.be.undefined
   })
 
+  testErc721 = await new TestERC721__factory(deployer).deploy("TEST721", "T721")
+  testErc1155 = await new TestERC1155__factory(deployer).deploy()
+  testToken = await new TestToken__factory(deployer).deploy("TEST", "TST")
 });
 
 

@@ -18,7 +18,7 @@ import {DataTypes} from '../libs/DataTypes.sol';
 
 contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHub {
     address private _collectNFTImpl;
-    address private _assetModule;
+    address private _createAssetModule;
     mapping(address => bool) private _collectModuleWhitelisted;
 
     error InvalidCollectNFTImpl();
@@ -30,13 +30,13 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
         string memory symbol,
         address admin,
         address collectNFT,
-        address assetModule
+        address createAssetModule
     ) external initializer {
         __AssetNFTBase_init(name, symbol);
         __Ownable_init(admin);
         __UUPSUpgradeable_init();
         _collectNFTImpl = collectNFT;
-        _assetModule = assetModule;
+        _createAssetModule = createAssetModule;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -61,8 +61,8 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
         }
         uint256 res = _createAsset(pub, data);
 
-        if (_assetModule != address(0)) {
-            ICreateAssetModule(_assetModule).processCreate(pub, res, data.assetCreateModuleData);
+        if (_createAssetModule != address(0)) {
+            ICreateAssetModule(_createAssetModule).processCreate(pub, res, data.assetCreateModuleData);
         }
 
         if (data.collectModule != address(0)) {
@@ -91,17 +91,17 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
     }
 
     function setCreateAssetModule(address assetModule) external onlyOwner {
-        if (_assetModule != address(0)) {
+        if (_createAssetModule != address(0)) {
             require(
                 IERC165(assetModule).supportsInterface(type(ICreateAssetModule).interfaceId),
                 'Invalid create asset module(ICreateAssetModule)'
             );
         }
-        _assetModule = assetModule;
+        _createAssetModule = assetModule;
     }
 
     function getCreateAssetModule() external view returns (address) {
-        return _assetModule;
+        return _createAssetModule;
     }
 
     function assetGated(uint256 assetId, address account) external view returns (bool) {
@@ -227,9 +227,6 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
     }
 
     function _setGatedModule(uint256 assetId, address gatedModule) internal {
-        if (_assets[assetId].gatedModule == gatedModule) {
-            return;
-        }
         if (gatedModule != address(0)) {
             require(
                 IERC165(gatedModule).supportsInterface(type(IAssetGatedModule).interfaceId),
@@ -240,9 +237,6 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
     }
 
     function _setCollectModule(uint256 assetId, address collectModule) internal {
-        if (_assets[assetId].collectModule == collectModule) {
-            return;
-        }
         if (collectModule != address(0)) {
             if (!_collectModuleWhitelisted[collectModule]) {
                 revert Errors.CollectModuleNotWhitelisted();

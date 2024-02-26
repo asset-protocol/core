@@ -9,7 +9,6 @@ import {Errors} from '../libs/Errors.sol';
 
 contract CollectNFT is ERC721Upgradeable, ICollectNFT {
     address public immutable HUB;
-
     uint256 internal _assetId;
     address internal _publisher;
     uint256 internal _tokenIdCounter;

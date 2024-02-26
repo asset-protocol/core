@@ -22,7 +22,7 @@ const APIKEY_polygonMumbai = vars.get("APIKEY_polygonMumbai", "")
 const OPSepolia_RPC = vars.get("OPSEPOLIA_RPC", "")
 const APIKEY_opSepolia = vars.get("APIKEY_opSepolia")
 
-const NETWORK = vars.get("NETWORK", "hardhat")
+const NETWORK = vars.get("DEFAULT_NETWORK", "hardhat")
 
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
@@ -58,7 +58,7 @@ const config: HardhatUserConfig = {
     path: './abi',
     runOnCompile: true,
     flat: true,
-    only: ['AssetHub'],
+    only: ['AssetHub', "IContractName"],
     spacing: 2,
   },
 };

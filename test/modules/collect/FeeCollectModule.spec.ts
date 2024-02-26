@@ -1,33 +1,11 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers"
-import { AssetHub, FeeCollectModule, FeeCollectModule__factory } from "../../typechain-types"
-import { DeployCtx, deployContracts, deployer, user, user3, userAddress } from "../setup.spec"
+import { AssetHub, FeeCollectModule, FeeCollectModule__factory } from "../../../typechain-types"
+import { DeployCtx, deployContracts, deployer, user, user3, userAddress } from "../../setup.spec"
 import { expect } from "chai"
-import { AbiCoder, AddressLike, BytesLike, ZeroAddress } from "ethers"
-import { ZERO_DATA } from "../contants"
-import { ERRORS } from "../helpers/errors"
-function createAsset(hub: AssetHub, module: AddressLike, initData: BytesLike) {
-  return hub.create({
-    publisher: ZeroAddress,
-    contentURI: "https://www.google.com",
-    collectModule: module,
-    collectModuleInitData: initData,
-    assetCreateModuleData: ZERO_DATA,
-    gatedModule: ZeroAddress,
-    gatedModuleInitData: ZERO_DATA,
-  })
-}
-
-function createAssetStatic(hub: AssetHub, module: AddressLike, initData: BytesLike) {
-  return hub.create.staticCall({
-    publisher: ZeroAddress,
-    contentURI: "https://www.google.com",
-    collectModule: module,
-    collectModuleInitData: initData,
-    assetCreateModuleData: ZERO_DATA,
-    gatedModule: ZeroAddress,
-    gatedModuleInitData: ZERO_DATA,
-  })
-}
+import { AbiCoder } from "ethers"
+import { ZERO_DATA } from "../../contants"
+import { ERRORS } from "../../helpers/errors"
+import { createAsset, createAssetStatic } from "../../helpers/asset"
 
 describe("Subcribe to Asset with fee module", async () => {
   let cts: DeployCtx = {} as any

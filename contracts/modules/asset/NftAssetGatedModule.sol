@@ -3,14 +3,22 @@ pragma solidity ^0.8.20;
 
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {IERC1155} from '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {IAssetGatedModule} from '../../interfaces/IAssetGatedModule.sol';
 import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
 
+enum NftGatedType {
+    ERC20,
+    ERC721,
+    ERC1155
+}
+
 struct NftGatedConfig {
     address nftContract;
+    NftGatedType nftType;
     uint256 tokenId;
     uint256 amount;
     bool isOr;
@@ -25,8 +33,13 @@ contract NftAssetGatedModule is
 {
     bytes4 public constant ERC721_INTERFACE = type(IERC721).interfaceId;
     bytes4 public constant ERC1155_INTERFACE = type(IERC1155).interfaceId;
+    bytes4 public constant ERC20_INTERFACE = type(IERC20).interfaceId;
 
     mapping(uint256 => NftGatedConfig[]) internal nftGatedConfigs;
+
+    error NftContractIsZeroAddress();
+    error ContractTypeNotSupported(address);
+    error ContractTypeNotMatched(address, NftGatedType);
 
     function initialize(address hub, address admin) external initializer {
         __Ownable_init(admin);
@@ -63,9 +76,11 @@ contract NftAssetGatedModule is
         for (uint256 i = 0; i < config.length; i++) {
             bool isOr = i == 0 ? false : config[i].isOr;
             bool isPass;
-            if (_isERC721(config[i].nftContract)) {
-                isPass = IERC721(config[i].nftContract).balanceOf(account) > 0;
-            } else if (_isERC1155(config[i].nftContract)) {
+            if (config[i].nftType == NftGatedType.ERC20) {
+                isPass = IERC20(config[i].nftContract).balanceOf(account) >= config[i].amount;
+            } else if (config[i].nftType == NftGatedType.ERC721) {
+                isPass = IERC721(config[i].nftContract).balanceOf(account) >= config[i].amount;
+            } else if (config[i].nftType == NftGatedType.ERC1155) {
                 isPass =
                     IERC1155(config[i].nftContract).balanceOf(account, config[i].tokenId) >=
                     config[i].amount;
@@ -81,18 +96,30 @@ contract NftAssetGatedModule is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function _checkNftContract(address nftContract) internal view {
-        require(nftContract != address(0), 'NftAssetGatedModule: nftContract is zero address');
-        require(
-            IERC721(nftContract).supportsInterface(ERC721_INTERFACE) ||
-                IERC1155(nftContract).supportsInterface(ERC1155_INTERFACE),
-            'NftAssetGatedModule: nftContract is not ERC721 or IERC1155'
-        );
+    function _checkNftContract(NftGatedConfig memory config) internal view {
+        if (config.nftContract == address(0)) {
+            revert NftContractIsZeroAddress();
+        }
+        if (config.nftType == NftGatedType.ERC20) {
+            if (!_isERC20(config.nftContract)) {
+                revert ContractTypeNotMatched(config.nftContract, config.nftType);
+            }
+        } else if (config.nftType == NftGatedType.ERC721) {
+            if (!_isERC721(config.nftContract)) {
+                revert ContractTypeNotMatched(config.nftContract, config.nftType);
+            }
+        } else if (config.nftType == NftGatedType.ERC1155) {
+            if (!_isERC1155(config.nftContract)) {
+                revert ContractTypeNotMatched(config.nftContract, config.nftType);
+            }
+        } else {
+            revert ContractTypeNotSupported(config.nftContract);
+        }
     }
-    
+
     function _setConfig(uint256 assetId, NftGatedConfig[] memory config) internal {
         for (uint256 i = 0; i < config.length; i++) {
-            _checkNftContract(config[i].nftContract);
+            _checkNftContract(config[i]);
         }
         for (uint256 i = 0; i < config.length; i++) {
             nftGatedConfigs[assetId].push(config[i]);
@@ -111,5 +138,9 @@ contract NftAssetGatedModule is
 
     function _isERC1155(address nftContract) internal view returns (bool) {
         return IERC1155(nftContract).supportsInterface(ERC1155_INTERFACE);
+    }
+
+    function _isERC20(address /* nftContract */) internal pure returns (bool) {
+        return true;
     }
 }

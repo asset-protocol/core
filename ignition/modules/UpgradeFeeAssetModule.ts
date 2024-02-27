@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { assethubModule } from "./core/AssetHub"
+import { assethubModule } from "./core/assetHub"
 import TestTokenModule from "./core/TestToken"
 
 export default buildModule("UpgradeFeeAssetModule", (m) => {

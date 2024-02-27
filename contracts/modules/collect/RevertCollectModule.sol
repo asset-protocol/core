@@ -2,14 +2,17 @@
 pragma solidity ^0.8.20;
 
 import {ICollectModule} from '../../interfaces/ICollectModule.sol';
+import {RequiredHub} from '../../base/RequiredHub.sol';
 
-contract RevertCollectModule is ICollectModule {
+contract RevertCollectModule is RequiredHub, ICollectModule {
+    constructor(address hub) RequiredHub(hub) {}
+
     function processCollect(
         address,
         address,
         uint256,
         bytes calldata
-    ) external pure override returns (bytes memory) {
+    ) external view override onlyHub returns (bytes memory) {
         revert('RevertCollectModule');
     }
 
@@ -17,5 +20,5 @@ contract RevertCollectModule is ICollectModule {
         address,
         uint256,
         bytes calldata
-    ) external override returns (bytes memory) {}
+    ) external override onlyHub returns (bytes memory) {}
 }

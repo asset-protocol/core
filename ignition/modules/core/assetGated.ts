@@ -1,14 +1,14 @@
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./contracts";
-import { assethubModule } from "./AssetHub";
+import { assethubModule } from "./assetHub";
 
 export const NftAssetGatedModuleImpl = buildModule(Contracts.NftAssetGatedModule + "Impl", (m) => {
   const assethubImpl = m.contract(Contracts.NftAssetGatedModule, []);
   return { assethubImpl };
 });
 
-export default buildModule(Contracts.NftAssetGatedModule, (m) => {
+export const nftAssetGatedModule = buildModule(Contracts.NftAssetGatedModule, (m) => {
   const nftGatedModuleImpl = m.useModule(NftAssetGatedModuleImpl).assethubImpl;
   const nftGatedModuleProxy = m.contract("ERC1967Proxy", [nftGatedModuleImpl, "0x"])
 
@@ -16,4 +16,14 @@ export default buildModule(Contracts.NftAssetGatedModule, (m) => {
   const { assethub } = m.useModule(assethubModule)
   m.call(nftGatedModule, "initialize", [assethub, m.getAccount(0)]);
   return { nftGatedModule };
+});
+
+
+export const upgradeNftGatedModule = buildModule("UpgradeNftGatedModule", (m) => {
+  const nftGatedModule = m.useModule(nftAssetGatedModule).nftGatedModule;
+  const nftGatedModule_Next = m.contract(Contracts.NftAssetGatedModule, [], {
+    id: "NftGatedModule_Next",
+  })
+  m.call(nftGatedModule, "upgradeToAndCall", [nftGatedModule_Next, "0x"])
+  return {}
 });

@@ -1,6 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import "@openzeppelin/hardhat-upgrades"
-import { assethubModule } from "./core/AssetHub"
+import { assethubModule } from "./core/assetHub"
 import { ZeroAddress } from "ethers";
 import { Contracts } from "./core/contracts";
 

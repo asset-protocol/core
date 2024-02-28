@@ -3,14 +3,16 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./contracts";
 import { assethubModule } from "./assetHub";
 
-export const NftAssetGatedModuleImpl = buildModule(Contracts.NftAssetGatedModule + "Impl", (m) => {
+export const NftAssetGatedModuleImpl = buildModule(Contracts.NftAssetGatedModule + "_impl", (m) => {
   const assethubImpl = m.contract(Contracts.NftAssetGatedModule, []);
   return { assethubImpl };
 });
 
 export const nftAssetGatedModule = buildModule(Contracts.NftAssetGatedModule, (m) => {
   const nftGatedModuleImpl = m.useModule(NftAssetGatedModuleImpl).assethubImpl;
-  const nftGatedModuleProxy = m.contract("ERC1967Proxy", [nftGatedModuleImpl, "0x"])
+  const nftGatedModuleProxy = m.contract("ERC1967Proxy", [nftGatedModuleImpl, "0x"], {
+    id: Contracts.NftAssetGatedModule + "_proxy"
+  })
 
   const nftGatedModule = m.contractAt(Contracts.NftAssetGatedModule, nftGatedModuleProxy);
   const { assethub } = m.useModule(assethubModule)

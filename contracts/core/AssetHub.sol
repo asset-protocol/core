@@ -23,8 +23,6 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
 
     error InvalidCollectNFTImpl();
 
-    constructor() {}
-
     function initialize(
         string memory name,
         string memory symbol,
@@ -219,10 +217,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
         string memory collectNFTSymbol = string(
             abi.encodePacked(Strings.toString(assetId), Constants.COLLECT_NFT_SYMBOL_SUFFIX)
         );
-
         ICollectNFT(collectNFT).initialize(collectNFTName, collectNFTSymbol, publisher, assetId);
-        emit Events.CollectNFTDeployed(assetId, collectNFT, block.timestamp);
-
         return collectNFT;
     }
 

@@ -37,6 +37,8 @@ contract NftAssetGatedModule is
 
     mapping(uint256 => NftGatedConfig[]) internal nftGatedConfigs;
 
+    event ConfigChanged(uint256 indexed assetId, NftGatedConfig[] config);
+
     error NftContractIsZeroAddress();
     error ContractTypeNotSupported(address);
     error ContractTypeNotMatched(address, NftGatedType);
@@ -124,6 +126,7 @@ contract NftAssetGatedModule is
         for (uint256 i = 0; i < config.length; i++) {
             nftGatedConfigs[assetId].push(config[i]);
         }
+        emit ConfigChanged(assetId, config);
     }
 
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {

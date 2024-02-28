@@ -29,12 +29,6 @@ library Events {
         uint256 timestamp
     );
 
-    event CollectNFTDeployed(
-        uint256 indexed assetId,
-        address indexed collectNFT,
-        uint256 timestamp
-    );
-
     event CollectNFTTransfered(
         address indexed publiser,
         uint256 indexed assetId,

@@ -17,7 +17,7 @@ export const nftAssetGatedModule = buildModule(Contracts.NftAssetGatedModule, (m
   const nftGatedModule = m.contractAt(Contracts.NftAssetGatedModule, nftGatedModuleProxy);
   const { assethub } = m.useModule(assethubModule)
   m.call(nftGatedModule, "initialize", [assethub, m.getAccount(0)]);
-  return { nftGatedModule };
+  return { nftGatedModule, nftGatedModuleImpl };
 });
 
 

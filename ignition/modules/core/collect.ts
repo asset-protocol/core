@@ -14,7 +14,7 @@ export const FeeCollectModule = buildModule(Contracts.FeeCollectModule, (m) => {
     id: Contracts.FeeCollectModule
   });
   m.call(feeCollect, "initialize", [assethub, m.getAccount(0)]);
-  return { feeCollect };
+  return { feeCollect, feeCollectImpl };
 })
 
 export const RevertCollectModule = buildModule(Contracts.RevertCollectModule, (m) => {

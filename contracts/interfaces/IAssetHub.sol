@@ -4,6 +4,14 @@ pragma solidity ^0.8.20;
 import {DataTypes} from '../libs/DataTypes.sol';
 
 interface IAssetHub {
+    function initialize(
+        string memory name,
+        string memory symbol,
+        address admin,
+        address collectNFT,
+        address createAssetModule
+    ) external;
+
     /// @notice create a new asset
     /// @param data the data of the asset
     /// @return the id of the asset

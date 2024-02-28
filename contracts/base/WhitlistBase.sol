@@ -2,41 +2,40 @@
 
 pragma solidity ^0.8.20;
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {Context} from '@openzeppelin/contracts/utils/Context.sol';
 
-abstract contract WhitelistBase is Context {
+abstract contract WhitelistBase {
     mapping(address => bool) private _whitelist;
 
     event Whitelisted(address indexed account, bool isWhitelisted);
+    error NotWhitelisted(address account);
 
-    constructor() {
-        _whitelist[_msgSender()] = true;
-        emit Whitelisted(_msgSender(), true);
+    modifier onlyWhitelisted() {
+        _checkWhitelisted(msg.sender);
+        _;
     }
 
-    function isWhitelisted(address account) public view virtual returns (bool) {
+    function whitelisted(address account) public view virtual returns (bool) {
         return _whitelist[account];
     }
 
-    function _addWhitelist(address account) internal virtual {
-        _whitelist[account] = true;
-        emit Whitelisted(account, true);
+    function _setWhitelist(address account, bool whitelist) internal virtual {
+        _whitelist[account] = whitelist;
+        emit Whitelisted(account, whitelist);
     }
 
-    function _addWhitelistBatch(address[] memory accounts) internal virtual {
+    function _setWhitelistBatch(
+        address[] memory accounts,
+        bool[] memory isWhitelisted
+    ) internal virtual {
         for (uint256 i = 0; i < accounts.length; i++) {
-            _addWhitelist(accounts[i]);
+            _setWhitelist(accounts[i], isWhitelisted[i]);
         }
     }
 
-    function _removeWhitelist(address account) internal virtual {
-        _whitelist[account] = false;
-        emit Whitelisted(account, false);
-    }
-
-    function _removeWhitelistBatch(address[] memory accounts) internal virtual {
-        for (uint256 i = 0; i < accounts.length; i++) {
-            _removeWhitelist(accounts[i]);
+    function _checkWhitelisted(address account) internal view {
+        if (!whitelisted(account)) {
+            revert NotWhitelisted(account);
         }
     }
 }

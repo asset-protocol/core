@@ -1,5 +1,6 @@
 
 export enum Contracts {
+  AssetHubFactory = "AssetHubFactory",
   AssetHub = "AssetHub",
   TestToken = "TestToken",
 

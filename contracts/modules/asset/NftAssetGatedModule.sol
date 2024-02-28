@@ -7,6 +7,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {INftAssetGatedModule} from '../../interfaces/INftAssetGatedModule.sol';
 import {IAssetGatedModule} from '../../interfaces/IAssetGatedModule.sol';
 import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
 
@@ -29,7 +30,7 @@ contract NftAssetGatedModule is
     UUPSUpgradeable,
     RequiredHubUpgradeable,
     ERC165Upgradeable,
-    IAssetGatedModule
+    INftAssetGatedModule
 {
     bytes4 public constant ERC721_INTERFACE = type(IERC721).interfaceId;
     bytes4 public constant ERC1155_INTERFACE = type(IERC1155).interfaceId;

@@ -23,7 +23,7 @@ contract CollectNFT is ERC721Upgradeable, ICollectNFT {
         string calldata symbol_,
         address publisher_,
         uint256 assetId_
-    ) external initializer {
+    ) external onlyHub initializer {
         __ERC721_init(name_, symbol_);
         _assetId = assetId_;
         _publisher = publisher_;

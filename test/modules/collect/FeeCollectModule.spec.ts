@@ -19,7 +19,8 @@ describe("Subcribe to Asset with fee module", async () => {
     // console.log("befere each run........................")
     cts = await loadFixture(deployContracts)
     assetHub = cts.assetHub.connect(user)
-    feeModule = await new FeeCollectModule__factory(user).deploy(await assetHub.getAddress())
+    feeModule = await new FeeCollectModule__factory(user).deploy()
+    await feeModule.initialize(await assetHub.getAddress(), await user.getAddress())
     const adminHub = cts.assetHub.connect(deployer)
     await expect(adminHub.collectModuleWhitelist(await feeModule.getAddress(), true))
       .to.not.be.reverted
@@ -36,7 +37,8 @@ describe("Subcribe to Asset with fee module", async () => {
 
   it("should fail to create asset with unwhitelisted fee collect module", async function () {
     const unwhitelistedFeeModule = await new FeeCollectModule__factory(user)
-      .deploy(await assetHub.getAddress())
+      .deploy()
+    await unwhitelistedFeeModule.initialize(await assetHub.getAddress(), await user.getAddress())
     await expect(createAsset(assetHub, await unwhitelistedFeeModule.getAddress(), ZERO_DATA))
       .to.be.revertedWithCustomError(assetHub, ERRORS.CollectModuleNotWhitelisted)
   })

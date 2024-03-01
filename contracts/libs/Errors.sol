@@ -12,4 +12,6 @@ library Errors {
     error AssetDoesNotExist();
     error CallerNotCollectNFT();
     error CollectModuleNotWhitelisted();
+    error InvalidCreateAssetModule();
+    error InvalidGatedModule();
 }

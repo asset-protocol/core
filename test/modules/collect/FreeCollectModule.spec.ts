@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { ZeroAddress } from "ethers";
 import { ERRORS } from "../../helpers/errors";
 import { ZERO_DATA } from "../../contants";
+import { ethers } from "hardhat";
 
 describe("Subcribe to Asset with free module", async function () {
   let cts: DeployCtx = {} as any
@@ -31,8 +32,9 @@ describe("Subcribe to Asset with free module", async function () {
   it("should collect to asset", async function () {
     const bt = await time.latest()
     const collectTokenId = await assetHub.collect.staticCall(firstAssetId, ZERO_DATA)
+    const libHub = await ethers.getContractAt("AssetHubLogic", assetHub)
     await expect(await assetHub.collect(firstAssetId, ZERO_DATA))
-      .to.be.emit(assetHub, "Collected")
+      .to.be.emit(libHub, "Collected")
       .withArgs(
         firstAssetId,
         userAddress,

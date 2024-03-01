@@ -1,19 +1,21 @@
 import { expect } from "chai";
-import { AssetHubFactory, AssetHubFactory__factory, AssetHub__factory, FeeCollectModule__factory, NftAssetGatedModule__factory } from "../../typechain-types";
-import { deployer } from "../setup.spec";
+import { AssetHubFactory__factory, AssetHubManager, AssetHubManager__factory, FeeCollectModuleFactory__factory, FeeCollectModule__factory, FeeCreateAssetModuleFactory__factory, NftAssetGatedModuleFactory__factory, NftAssetGatedModule__factory } from "../../typechain-types";
+import { assethubLibs, deployer } from "../setup.spec";
 
 describe("AssetHubFactory", async function () {
-  let factory: AssetHubFactory;
+  let factory: AssetHubManager;
 
   beforeEach(async function () {
-    const assetHubImpl = await new AssetHub__factory(deployer).deploy();
-    const feeCollectImpl = await new FeeCollectModule__factory(deployer).deploy();
-    const nftGatedModuleImpl = await new NftAssetGatedModule__factory(deployer).deploy();
-    factory = await new AssetHubFactory__factory(deployer).deploy();
+    factory = await new AssetHubManager__factory(deployer).deploy();
+    const assetHubFactory = await new AssetHubFactory__factory(assethubLibs, deployer).deploy();
+    const feeCollectModuleFactory = await new FeeCollectModuleFactory__factory(deployer).deploy();
+    const nftGatedModuleFactory = await new NftAssetGatedModuleFactory__factory(deployer).deploy();
+    const FeeAssetCreateModule = await new FeeCreateAssetModuleFactory__factory(deployer).deploy();
     await expect(factory.initialize({
-      assetHubImpl: await assetHubImpl.getAddress(),
-      feeCollectModuleImpl: await feeCollectImpl.getAddress(),
-      nftGatedModuleImpl: await nftGatedModuleImpl.getAddress(),
+      assetHubFactory: await assetHubFactory.getAddress(),
+      feeCollectModuleFactory: await feeCollectModuleFactory.getAddress(),
+      nftGatedModuleFactory: await nftGatedModuleFactory.getAddress(),
+      feeCreateAssetModuleFactory: await FeeAssetCreateModule.getAddress()
     })).to.not.be.reverted;
   });
 
@@ -21,7 +23,7 @@ describe("AssetHubFactory", async function () {
     await expect(factory.deploy({
       admin: await deployer.getAddress(),
       name: "Test AssetHub",
-      collectNft: true,
+      collectNft: true
     })).to.not.be.reverted;
   });
 });

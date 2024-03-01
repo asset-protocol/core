@@ -19,13 +19,6 @@ library DataTypes {
         bytes gatedModuleInitData;
     }
 
-    struct AssetCreatedEventData {
-        string contentURI;
-        address collectNFT;
-        address collectModule;
-        address gatedModule;
-    }
-
     struct AssetUpdateData {
         address collectModule;
         address gatedModule;

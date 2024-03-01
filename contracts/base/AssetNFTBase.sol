@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {DataTypes} from '../libs/DataTypes.sol';
+import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import {ERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import {IERC4906} from '@openzeppelin/contracts/interfaces/IERC4906.sol';
 import {IERC165} from '@openzeppelin/contracts/interfaces/IERC165.sol';
-import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import {Errors} from '../libs/Errors.sol';
 import {Events} from '../libs/Events.sol';
 

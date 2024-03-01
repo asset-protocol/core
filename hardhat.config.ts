@@ -58,8 +58,7 @@ const config: HardhatUserConfig = {
     path: './abi',
     runOnCompile: true,
     flat: true,
-    pretty: true,
-    only: ['AssetHub', "IContractMetadata", "FeeCollectModule", "NftAssetGatedModule"],
+    only: ['AssetHub', "AssetHubLogic", "IContractMetadata", "FeeCollectModule", "NftAssetGatedModule"],
     spacing: 2,
   },
 };

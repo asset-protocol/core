@@ -3,7 +3,10 @@ import { Contracts } from "./contracts";
 
 export const assethubImplModule = buildModule(Contracts.AssetHub + "_impl", (m) => {
   const assethubImpl = m.contract("AssetHub", [], {
-    id: Contracts.AssetHub + "_impl"
+    id: Contracts.AssetHub + "_impl",
+    libraries:{
+      AssetHubLogic: m.contract("AssetHubLogic", [])
+    }
   });
   return { assethubImpl };
 });

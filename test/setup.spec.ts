@@ -1,8 +1,9 @@
 import { ethers, upgrades } from 'hardhat';
 import "@openzeppelin/hardhat-upgrades";
-import { AssetHub, AssetHub__factory, CollectNFT, CollectNFT__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, TokenTransfer__factory, UUPSUpgradeable, UUPSUpgradeable__factory } from "../typechain-types";
+import { AssetHub, AssetHub__factory, AssetHubLogic, AssetHubLogic__factory, CollectNFT, CollectNFT__factory, Events, Events__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, TokenTransfer__factory, UUPSUpgradeable, UUPSUpgradeable__factory } from "../typechain-types";
 import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
+import { AssetHubLibraryAddresses } from '../typechain-types/factories/contracts/core/AssetHub__factory';
 
 export let accounts: Signer[];
 export let deployer: Signer;
@@ -13,6 +14,8 @@ export let deployerAddress: string;
 export let testToken: TestToken;
 export let testErc721: TestERC721;
 export let testErc1155: TestERC1155;
+export let assethubLibs: AssetHubLibraryAddresses;
+export let eventsLib: Events;
 
 export type DeployCtx = {
   assetHub: AssetHub
@@ -23,11 +26,11 @@ export type DeployCtx = {
 export async function deployContracts(): Promise<DeployCtx> {
   const tokenImpl = await new TestToken__factory(deployer).deploy("EmptyToken", "ET")
 
-  const assetHubImpl = await ethers.getContractFactory("AssetHub")
-
+  const assetHubImpl = new AssetHub__factory(assethubLibs, deployer)
   const assethubProxy = await upgrades.deployProxy(assetHubImpl, [], {
     kind: "uups",
     initializer: false,
+    unsafeAllow: ["external-library-linking"],
   })
 
   await assethubProxy.waitForDeployment()
@@ -57,6 +60,12 @@ before(async function () {
   testErc721 = await new TestERC721__factory(deployer).deploy("TEST721", "T721")
   testErc1155 = await new TestERC1155__factory(deployer).deploy()
   testToken = await new TestToken__factory(deployer).deploy("TEST", "TST")
+  const libAsset = await new AssetHubLogic__factory(deployer).deploy()
+  assethubLibs = {
+    "contracts/base/AssetHubLogic.sol:AssetHubLogic": await libAsset.getAddress()
+  }
+  // Event library deployment is only needed for testing and is not reproduced in the live environment
+  eventsLib = await new Events__factory(deployer).deploy();
 });
 
 

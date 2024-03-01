@@ -8,8 +8,11 @@ library Events {
     event AssetCreated(
         address indexed publisher,
         uint256 indexed assetId,
-        uint256 indexed timestamp,
-        DataTypes.AssetCreatedEventData data
+        string contentURI,
+        address collectNFT,
+        address collectModule,
+        address gatedModule,
+        uint256 timestamp
     );
 
     event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data, uint256 timestamp);

@@ -6,6 +6,7 @@ import { AbiCoder } from "ethers"
 import { ZERO_DATA } from "../../contants"
 import { ERRORS } from "../../helpers/errors"
 import { createAsset, createAssetStatic } from "../../helpers/asset"
+import { ethers } from "hardhat"
 
 describe("Subcribe to Asset with fee module", async () => {
   let cts: DeployCtx = {} as any
@@ -86,8 +87,9 @@ describe("Subcribe to Asset with fee module", async () => {
       .to.not.be.reverted
     const bt = await time.latest()
     const tokenId = await use3hub.collect.staticCall(assetId, ZERO_DATA)
+    const libHub = await ethers.getContractAt("AssetHubLogic", assetHub)
     await expect(use3hub.collect(assetId, ZERO_DATA))
-      .to.be.emit(assetHub, "Collected")
+      .to.be.emit(libHub, "Collected")
       .withArgs(
         assetId,
         user3Address,

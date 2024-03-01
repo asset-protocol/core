@@ -1,6 +1,5 @@
 
 export enum Contracts {
-  AssetHubFactory = "AssetHubFactory",
   AssetHub = "AssetHub",
   TestToken = "TestToken",
 
@@ -11,4 +10,11 @@ export enum Contracts {
   EmptyCollectModule = "EmptyCollectModule",
   FeeCollectModule = "FeeCollectModule",
   RevertCollectModule = "RevertCollectModule",
+
+  AssetHubLogic = "AssetHubLogic",
+
+  AssetHubManager = "AssetHubManager",
+  AssetHubFactory = "AssetHubFactory",
+  FeeCollectModuleFactory = "FeeCollectModuleFactory",
+  NftAssetGatedModuleFactory = "NftAssetGatedModuleFactory",
 }

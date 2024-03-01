@@ -1,35 +1,42 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./contracts";
 
-export const assethubFactoryImplModule = buildModule(Contracts.AssetHubFactory + "_impl", (m) => {
-  const assethubFactoryImpl = m.contract(Contracts.AssetHubFactory, [], {
-    id: Contracts.AssetHubFactory + "_impl",
+export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) => {
+  const assethubFactory = m.contract(Contracts.AssetHubFactory, [], {
+    id: Contracts.AssetHubFactory,
     libraries: {
       "contracts/base/AssetHubLogic.sol:AssetHubLogic": m.contract(Contracts.AssetHubLogic, [])
     }
   });
-  return { assethubFactoryImpl };
+  return { assethubFactory };
 });
 
-export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) => {
+export const assethubManagerModule = buildModule(Contracts.AssetHubManager, (m) => {
   const assetHubManagerImpl = m.contract(Contracts.AssetHubManager, [], {
     id: Contracts.AssetHubManager + "_impl",
   });
-  const assethubFactoryProxy = m.contract("ERC1967Proxy", [assetHubManagerImpl, "0x"], {
+  const assethubManagerProxy = m.contract("ERC1967Proxy", [assetHubManagerImpl, "0x"], {
     id: Contracts.AssetHubManager + "_proxy",
   })
-  const assethubManager = m.contractAt(Contracts.AssetHubManager, assethubFactoryProxy)
-  const { assethubFactoryImpl } = m.useModule(assethubFactoryImplModule);
+  const assethubManager = m.contractAt(Contracts.AssetHubManager, assethubManagerProxy)
+  const { assethubFactory } = m.useModule(assethubFactoryModule);
   const feeCollectModuleFactory = m.contract(Contracts.FeeCollectModuleFactory, []);
   const nftGatedModuleFactory = m.contract(Contracts.NftAssetGatedModuleFactory, []);
+  const feeCreateAssetModuleFactory = m.contract(Contracts.FeeCreateAssetModuleFactory, [])
 
-  m.call(assethubManager, "initialize", [[assethubFactoryImpl, feeCollectModuleFactory, nftGatedModuleFactory]]);
+  m.call(assethubManager, "initialize", [
+    [
+      assethubFactory,
+      feeCollectModuleFactory,
+      nftGatedModuleFactory,
+      feeCreateAssetModuleFactory
+    ]]);
   return { assethubManager };
 });
 
 export const deployAssetHubModule = buildModule("DeployAssetHub", (m) => {
   const deployer = m.getAccount(0);
-  const { assethubManager } = m.useModule(assethubFactoryModule)
-  m.call(assethubManager, "deploy", [[deployer, "Test AssetHub", true]])
+  const { assethubManager } = m.useModule(assethubManagerModule)
+  m.call(assethubManager, "deploy", [[deployer, "DeSchool", true]])
   return { assethubManager }
 })

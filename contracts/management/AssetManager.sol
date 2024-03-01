@@ -18,7 +18,6 @@ struct AssetHubInfo {
 struct AssetHubDeployData {
     address admin;
     string name;
-    // address createModule;
     bool collectNft;
 }
 
@@ -38,6 +37,7 @@ struct AssetHubImplInitData {
 
 contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
     mapping(address => AssetHubInfo) private _assetHubs;
+    mapping(string => address) _namedHubs;
     AssetHubImplData internal _implData;
 
     event AssetHubDeployed(
@@ -45,8 +45,10 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
         address assetHub,
         address feeCollectModule,
         address nftGatedModule,
-        address assetCreateModule
+        address feeAssetCreateModule
     );
+
+    error NameHubExisted();
 
     function initialize(AssetHubImplInitData calldata data) external initializer {
         __Ownable_init(_msgSender());
@@ -70,10 +72,22 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
         return _assetHubs[hub];
     }
 
+    function assetHubInfoByName(string calldata name) external view returns (AssetHubInfo memory) {
+        address hub = _namedHubs[name];
+        return _assetHubs[hub];
+    }
+
+    function exitsName(string calldata name) external view returns (bool) {
+        return _namedHubs[name] != address(0);
+    }
+
     function deploy(AssetHubDeployData calldata data) external {
         _checkWhitelisted(_msgSender());
         if (_implData.assetHubFactory == address(0)) {
             revert('AssetHubFactory: not initialized');
+        }
+        if (_namedHubs[data.name] != address(0)) {
+            revert NameHubExisted();
         }
         _deployHub(data);
     }

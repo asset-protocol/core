@@ -5,7 +5,6 @@ import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {IERC1155} from '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
-import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {INftAssetGatedModule} from '../../interfaces/INftAssetGatedModule.sol';
 import {IAssetGatedModule} from '../../interfaces/IAssetGatedModule.sol';
@@ -26,7 +25,6 @@ struct NftGatedConfig {
 }
 
 contract NftAssetGatedModule is
-    OwnableUpgradeable,
     UUPSUpgradeable,
     RequiredHubUpgradeable,
     ERC165Upgradeable,
@@ -44,13 +42,13 @@ contract NftAssetGatedModule is
     error ContractTypeNotSupported(address);
     error ContractTypeNotMatched(address, NftGatedType);
 
-    function initialize(address hub, address admin) external initializer {
-        __Ownable_init(admin);
+    function initialize(address hub) external initializer {
         __UUPSUpgradeable_init();
         __RequiredHub_init(hub);
     }
 
-    function setConfig(uint256 assetId, NftGatedConfig[] calldata config) external onlyOwner {
+    function setConfig(uint256 assetId, NftGatedConfig[] calldata config) external {
+        _checkAssetOwner(assetId, msg.sender);
         _setConfig(assetId, config);
     }
 
@@ -97,7 +95,7 @@ contract NftAssetGatedModule is
         return true;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyHubOwner {}
 
     function _checkNftContract(NftGatedConfig memory config) internal view {
         if (config.nftContract == address(0)) {

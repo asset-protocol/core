@@ -10,17 +10,17 @@ dotenv.config({
   path: [".env", ".env.test"]
 })
 
-const proxyURL = vars.get("PROXY_URL", undefined)
+const proxyURL = vars.get("PROXY_URL", "")
 if (proxyURL) {
   const proxyAgent = new ProxyAgent(proxyURL)
   setGlobalDispatcher(proxyAgent)
 }
 
-const DEPLOYER_PRIVATEKEY = vars.get("DEPLOYER_PRIVATEKEY")
+const DEPLOYER_PRIVATEKEY = vars.get("DEPLOYER_PRIVATEKEY","")
 const APIKEY_polygonMumbai = vars.get("APIKEY_polygonMumbai", "")
 
 const OPSepolia_RPC = vars.get("OPSEPOLIA_RPC", "")
-const APIKEY_opSepolia = vars.get("APIKEY_opSepolia")
+const APIKEY_opSepolia = vars.get("APIKEY_opSepolia","")
 
 const NETWORK = vars.get("DEFAULT_NETWORK", "hardhat")
 
@@ -58,7 +58,7 @@ const config: HardhatUserConfig = {
     path: './abi',
     runOnCompile: true,
     flat: true,
-    only: ['AssetHub', "AssetHubLogic","Events", "IContractMetadata", "FeeCollectModule", "NftAssetGatedModule"],
+    only: ['AssetHub', "AssetHubLogic", "Events", "IContractMetadata", "FeeCollectModule", "NftAssetGatedModule"],
     spacing: 2,
   },
 };

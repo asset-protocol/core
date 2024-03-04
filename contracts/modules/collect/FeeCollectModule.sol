@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
-import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
 import {ICollectModule} from '../../interfaces/ICollectModule.sol';
 import {ITokenTransfer} from '../../interfaces/ITokenTransfer.sol';
@@ -16,12 +15,7 @@ struct FeeConfig {
     uint256 amount;
 }
 
-contract FeeCollectModule is
-    UUPSUpgradeable,
-    RequiredHubUpgradeable,
-    OwnableUpgradeable,
-    ICollectModule
-{
+contract FeeCollectModule is UUPSUpgradeable, RequiredHubUpgradeable, ICollectModule {
     using SafeERC20 for IERC20;
 
     mapping(uint256 assetId => FeeConfig config) internal _feeConfig;
@@ -32,15 +26,15 @@ contract FeeCollectModule is
 
     constructor() {}
 
-    function initialize(address hub, address admin) external initializer {
+    function initialize(address hub) external initializer {
         __UUPSUpgradeable_init();
         __RequiredHub_init(hub);
-        __Ownable_init(admin);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyHubOwner {}
 
-    function setFeeConfig(uint256 assetId, FeeConfig memory feeConfig) external onlyOwner {
+    function setFeeConfig(uint256 assetId, FeeConfig memory feeConfig) external {
+        _checkAssetOwner(assetId, msg.sender);
         if (feeConfig.amount == 0) {
             // no fee, currency must be address(0)
             require(feeConfig.currency == address(0), 'FeeCollectModule: invalid fee config');

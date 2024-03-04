@@ -4,5 +4,5 @@ pragma solidity ^0.8.20;
 import {IAssetGatedModule} from './IAssetGatedModule.sol';
 
 interface INftAssetGatedModule is IAssetGatedModule {
-    function initialize(address hub, address admin) external;
+    function initialize(address hub) external;
 }

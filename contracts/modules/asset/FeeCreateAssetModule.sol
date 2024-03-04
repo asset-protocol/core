@@ -5,7 +5,6 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ICreateAssetModule} from '../../interfaces/ICreateAssetModule.sol';
 import {RequiredHub} from '../../base/RequiredHub.sol';
-import {IOwnable} from '../../interfaces/IOwnable.sol';
 import {Errors} from '../../libs/Errors.sol';
 
 struct FeeCreateAssetConfig {
@@ -15,57 +14,55 @@ struct FeeCreateAssetConfig {
     bool isPay;
 }
 
-contract FeeCreateAssetModule is ICreateAssetModule {
+contract FeeCreateAssetModule is RequiredHub, ICreateAssetModule {
     using SafeERC20 for IERC20;
 
-    mapping(address => FeeCreateAssetConfig) _configs;
+    FeeCreateAssetConfig _config;
 
     event ConfigChanged(address hub, FeeCreateAssetConfig config);
 
     error HubNotSet();
     error AccountNotSet();
-    error NotHubOwner();
 
-    function setConfig(address hub, FeeCreateAssetConfig calldata config) external {
-        _checkHubOwner(hub, msg.sender);
+    constructor(address hub) RequiredHub(hub) {}
+
+    function setConfig(FeeCreateAssetConfig calldata config) external onlyHubOwner {
         _checkConfig(config);
-        _configs[hub] = FeeCreateAssetConfig({
+        _config = FeeCreateAssetConfig({
             tokenContract: config.tokenContract,
             amount: config.amount,
             account: config.account,
             isPay: config.isPay
         });
-        emit ConfigChanged(hub, config);
+        emit ConfigChanged(HUB, config);
     }
 
-    function getConfig(address hub) external view returns (FeeCreateAssetConfig memory) {
-        return _configs[hub];
+    function getConfig() external view returns (FeeCreateAssetConfig memory) {
+        return _config;
     }
 
     function processCreate(
         address publisher,
         uint256 /*assetId*/,
         bytes calldata /* data */
-    ) external override returns (bytes memory) {
-        FeeCreateAssetConfig storage config = _configs[msg.sender];
-        if (config.tokenContract == address(0)) {
+    ) external override onlyHub returns (bytes memory) {
+        if (_config.tokenContract == address(0)) {
             revert HubNotSet();
         }
-        if (config.isPay) {
-            IERC20(config.tokenContract).safeTransferFrom(publisher, config.account, config.amount);
+        if (_config.isPay) {
+            IERC20(_config.tokenContract).safeTransferFrom(
+                publisher,
+                _config.account,
+                _config.amount
+            );
         } else {
-            IERC20(config.tokenContract).safeTransferFrom(config.account, publisher, config.amount);
+            IERC20(_config.tokenContract).safeTransferFrom(
+                _config.account,
+                publisher,
+                _config.amount
+            );
         }
         return '';
-    }
-
-    function _checkHubOwner(address hub, address account) internal view {
-        if (hub == account) {
-            return;
-        }
-        if (IOwnable(hub).owner() != account) {
-            revert NotHubOwner();
-        }
     }
 
     function _checkConfig(FeeCreateAssetConfig calldata config) internal pure {

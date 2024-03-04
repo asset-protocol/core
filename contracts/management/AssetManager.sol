@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {WhitelistBase} from '../base/WhitlistBase.sol';
-import {IFactory} from '../interfaces/IFactory.sol';
+import {IModuleFactory, IAssetHubFactory} from './IFactory.sol';
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
 import {CollectNFT} from '../core/CollectNFT.sol';
 
@@ -13,6 +13,7 @@ struct AssetHubInfo {
     address feeCollectModule;
     address nftGatedModule;
     address assetCreateModule;
+    address collectNFT;
 }
 
 struct AssetHubDeployData {
@@ -49,6 +50,7 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
     );
 
     error NameHubExisted();
+    error AssetHubNotExisted();
 
     function initialize(AssetHubImplInitData calldata data) external initializer {
         __Ownable_init(_msgSender());
@@ -77,29 +79,29 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
         return _assetHubs[hub];
     }
 
-    function exitsName(string calldata name) external view returns (bool) {
+    function exitsName(string calldata name) public view returns (bool) {
         return _namedHubs[name] != address(0);
     }
 
-    function deploy(AssetHubDeployData calldata data) external {
+    function deploy(AssetHubDeployData calldata data) external returns (address) {
         _checkWhitelisted(_msgSender());
         if (_implData.assetHubFactory == address(0)) {
             revert('AssetHubFactory: not initialized');
         }
-        if (_namedHubs[data.name] != address(0)) {
+        if (exitsName(data.name)) {
             revert NameHubExisted();
         }
-        _deployHub(data);
+        return _deployHub(data);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function _deployHub(AssetHubDeployData calldata data) internal {
+    function _deployHub(AssetHubDeployData calldata data) internal returns (address) {
         address admin = data.admin;
         if (admin == address(0)) {
             admin = _msgSender();
         }
-        address assetHub = IFactory(_implData.assetHubFactory).create('');
+        address assetHub = IAssetHubFactory(_implData.assetHubFactory).create('');
         address collectNFT;
         if (data.collectNft) {
             collectNFT = address(new CollectNFT(assetHub));
@@ -110,7 +112,8 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
             assetHub: assetHub,
             feeCollectModule: _deployFeeCollectModule(address(assetHub), admin),
             nftGatedModule: _deployNftAssetGatedModule(address(assetHub), admin),
-            assetCreateModule: _deployAssetCreateModule(address(assetHub), admin)
+            assetCreateModule: _deployAssetCreateModule(address(assetHub), admin),
+            collectNFT: collectNFT
         });
         _assetHubs[address(assetHub)] = info;
         emit AssetHubDeployed(
@@ -120,17 +123,18 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
             info.nftGatedModule,
             info.assetCreateModule
         );
+        return info.assetHub;
     }
 
     function _deployFeeCollectModule(address hub, address admin) internal returns (address) {
-        return IFactory(_implData.feeCollectModuleFactory).create(abi.encode(hub, admin));
+        return IModuleFactory(_implData.feeCollectModuleFactory).create(hub, abi.encode(admin));
     }
 
     function _deployNftAssetGatedModule(address hub, address admin) internal returns (address) {
-        return IFactory(_implData.nftGatedModuleFactory).create(abi.encode(hub, admin));
+        return IModuleFactory(_implData.nftGatedModuleFactory).create(hub, abi.encode(admin));
     }
 
     function _deployAssetCreateModule(address hub, address admin) internal returns (address) {
-        return IFactory(_implData.feeCreateAssetModuleFactory).create(abi.encode(hub, admin));
+        return IModuleFactory(_implData.feeCreateAssetModuleFactory).create(hub, abi.encode(admin));
     }
 }

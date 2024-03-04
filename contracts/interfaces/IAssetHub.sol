@@ -29,4 +29,10 @@ interface IAssetHub {
         address from,
         address to
     ) external;
+
+    function hubOwner() external view returns (address);
+
+    function transferHubOwnership(address newOwner) external;
+
+    function assetPublisher(uint256 assetId) external view returns (address);
 }

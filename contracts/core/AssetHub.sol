@@ -35,6 +35,14 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
+    function transferHubOwnership(address newOwner) external {
+        transferOwnership(newOwner);
+    }
+
+    function hubOwner() public view override returns (address) {
+        return owner();
+    }
+
     function create(
         DataTypes.AssetCreateData calldata data
     ) external override(IAssetHub) whenNotPaused returns (uint256) {
@@ -47,7 +55,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
         address sender = address(0);
         if (pub != address(0)) {
             _checkOwner();
-            sender = owner(); // use owner as the sender
+            sender = hubOwner(); // use owner as the sender
         } else {
             pub = _msgSender();
             sender = pub;
@@ -81,6 +89,10 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
             }
         }
         _createAssetModule = assetModule;
+    }
+
+    function assetPublisher(uint256 assetId) external view returns (address) {
+        return ownerOf(assetId);
     }
 
     function getCreateAssetModule() external view returns (address) {

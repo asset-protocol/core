@@ -3,16 +3,16 @@ pragma solidity ^0.8.20;
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {IERC165} from '@openzeppelin/contracts/utils/introspection/IERC165.sol';
-import {IAssetHub} from '../interfaces/IAssetHub.sol';
-import {ICollectNFT} from '../interfaces/ICollectNFT.sol';
-import {ICreateAssetModule} from '../interfaces/ICreateAssetModule.sol';
-import {IAssetGatedModule} from '../interfaces/IAssetGatedModule.sol';
-import {AssetNFTBase} from '../base/AssetNFTBase.sol';
-import {AssetHubLogic} from '../base/AssetHubLogic.sol';
-import {Events} from '../libs/Events.sol';
-import {Errors} from '../libs/Errors.sol';
-import {Constants} from '../libs/Constants.sol';
-import {DataTypes} from '../libs/DataTypes.sol';
+import {IAssetHub} from './interfaces/IAssetHub.sol';
+import {ICollectNFT} from './interfaces/ICollectNFT.sol';
+import {ICreateAssetModule} from './interfaces/ICreateAssetModule.sol';
+import {IAssetGatedModule} from './interfaces/IAssetGatedModule.sol';
+import {AssetNFTBase} from './base/AssetNFTBase.sol';
+import {AssetHubLogic} from './base/AssetHubLogic.sol';
+import {Events} from './libs/Events.sol';
+import {Errors} from './libs/Errors.sol';
+import {Constants} from './libs/Constants.sol';
+import {DataTypes} from './libs/DataTypes.sol';
 
 contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHub {
     address private _collectNFTImpl;

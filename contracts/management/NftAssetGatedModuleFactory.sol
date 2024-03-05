@@ -6,13 +6,21 @@ import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {NftAssetGatedModule} from '../modules/asset/NftAssetGatedModule.sol';
 
 contract NftAssetGatedModuleFactory is IModuleFactory {
-    function create(
+    function createUUPSUpgradeable(
         address hub,
-        bytes calldata /* initData */
+        bytes calldata initData
     ) external override returns (address) {
-        NftAssetGatedModule impl = new NftAssetGatedModule();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(impl), '');
+        ERC1967Proxy proxy = new ERC1967Proxy(_createImpl(hub, initData), '');
         NftAssetGatedModule(address(proxy)).initialize(hub);
         return address(proxy);
+    }
+
+    function create(address hub, bytes calldata initData) external override returns (address) {
+        return _createImpl(hub, initData);
+    }
+
+    function _createImpl(address, bytes calldata) internal returns (address) {
+        NftAssetGatedModule impl = new NftAssetGatedModule();
+        return address(impl);
     }
 }

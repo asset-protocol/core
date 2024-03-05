@@ -31,7 +31,7 @@ export const assethubManagerModule = buildModule(Contracts.AssetHubManager, (m) 
       nftGatedModuleFactory,
       feeCreateAssetModuleFactory
     ]]);
-  return { assethubManager };
+  return { assethubManager, assethubManagerProxy };
 });
 
 export const deployAssetHubModule = buildModule("DeployAssetHub", (m) => {

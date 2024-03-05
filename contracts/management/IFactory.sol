@@ -5,12 +5,16 @@ interface IAssetHubFactory {
     error NotImplemented();
 
     function create(bytes calldata initData) external returns (address);
+
+    function createUUPSUpgradeable(bytes calldata initData) external returns (address);
 }
 
 interface IModuleFactory {
     error NotImplemented();
 
     function create(address hub, bytes calldata initData) external returns (address);
+
+    function createUUPSUpgradeable(address hub, bytes calldata initData) external returns (address);
 }
 
 interface IUUPSUpgradeable {

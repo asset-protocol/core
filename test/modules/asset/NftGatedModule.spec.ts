@@ -51,7 +51,7 @@ describe("Aesst gated with NFT gated module", async () => {
     assetHub = cts.assetHub.connect(user)
 
     const nftGated = await new NftAssetGatedModule__factory(deployer).deploy()
-    await nftGated.initialize(await assetHub.getAddress(), deployerAddress)
+    await nftGated.initialize(await assetHub.getAddress())
     nftGatedModule = await nftGated.getAddress()
   })
 

@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {ERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
-import {ICollectNFT} from '../interfaces/ICollectNFT.sol';
-import {IAssetHub} from '../interfaces/IAssetHub.sol';
+import {ICollectNFT} from './interfaces/ICollectNFT.sol';
+import {IAssetHub} from './interfaces/IAssetHub.sol';
 import {IERC721Metadata} from '@openzeppelin/contracts/interfaces/IERC721Metadata.sol';
-import {Errors} from '../libs/Errors.sol';
+import {Errors} from './libs/Errors.sol';
 
 contract CollectNFT is ERC721Upgradeable, ICollectNFT {
     address public immutable HUB;

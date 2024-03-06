@@ -1,10 +1,9 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers"
 import { AssetHub, NftAssetGatedModule__factory } from "../../../typechain-types"
-import { DeployCtx, deployContracts, deployer, deployerAddress, testErc1155, testErc721, testToken, user, user3 } from "../../setup.spec"
+import { DeployCtx, deployContracts, deployer, testErc1155, testErc721, testToken, user, user3 } from "../../setup.spec"
 import { AbiCoder, ZeroAddress } from 'ethers'
 import { ZERO_DATA } from "../../contants"
 import { expect } from "chai"
-import { createAsset } from "../../helpers/asset"
 
 enum NftGatedType {
   ERC20,

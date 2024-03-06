@@ -15,7 +15,7 @@ export const assethubManagerModule = buildModule(Contracts.AssetHubManager, (m) 
   const assetHubManagerImpl = m.contract(Contracts.AssetHubManager, [], {
     id: Contracts.AssetHubManager + "_impl",
   });
-  const assethubManagerProxy = m.contract("ERC1967Proxy", [assetHubManagerImpl, "0x"], {
+  const assethubManagerProxy = m.contract("UpgradeableProxy", [assetHubManagerImpl, "0x"], {
     id: Contracts.AssetHubManager + "_proxy",
   })
   const assethubManager = m.contractAt(Contracts.AssetHubManager, assethubManagerProxy)

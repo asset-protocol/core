@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
+
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {IERC165} from '@openzeppelin/contracts/utils/introspection/IERC165.sol';
+import {UpgradeableBase} from './upgradeability/UpgradeableBase.sol';
 import {IAssetHub} from './interfaces/IAssetHub.sol';
 import {ICollectNFT} from './interfaces/ICollectNFT.sol';
 import {ICreateAssetModule} from './interfaces/ICreateAssetModule.sol';
@@ -14,7 +15,8 @@ import {Errors} from './libs/Errors.sol';
 import {Constants} from './libs/Constants.sol';
 import {DataTypes} from './libs/DataTypes.sol';
 
-contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHub {
+contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHub {
+    string private constant VERSION = '1.0.0';
     address private _collectNFTImpl;
     address private _createAssetModule;
     mapping(address => bool) private _collectModuleWhitelisted;
@@ -31,6 +33,10 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UUPSUpgradeable, IAssetHu
         __UUPSUpgradeable_init();
         _collectNFTImpl = collectNFT;
         _createAssetModule = createAssetModule;
+    }
+
+    function version() external virtual override returns (string memory) {
+        return VERSION;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

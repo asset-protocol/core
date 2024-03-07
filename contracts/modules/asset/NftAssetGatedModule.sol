@@ -5,7 +5,7 @@ import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {IERC1155} from '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
-import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
 import {INftAssetGatedModule} from '../../interfaces/INftAssetGatedModule.sol';
 import {IAssetGatedModule} from '../../interfaces/IAssetGatedModule.sol';
 import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
@@ -25,11 +25,12 @@ struct NftGatedConfig {
 }
 
 contract NftAssetGatedModule is
-    UUPSUpgradeable,
+    UpgradeableBase,
     RequiredHubUpgradeable,
     ERC165Upgradeable,
     INftAssetGatedModule
 {
+    string private constant VERSION = '1.0.0';
     bytes4 public constant ERC721_INTERFACE = type(IERC721).interfaceId;
     bytes4 public constant ERC1155_INTERFACE = type(IERC1155).interfaceId;
     bytes4 public constant ERC20_INTERFACE = type(IERC20).interfaceId;
@@ -67,6 +68,10 @@ contract NftAssetGatedModule is
         }
         _setConfig(assetId, config);
         return '';
+    }
+
+    function version() external virtual override returns (string memory) {
+        return VERSION;
     }
 
     function isGated(uint256 assetId, address account) external view override returns (bool) {

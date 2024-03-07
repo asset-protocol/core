@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {UpgradeableBase} from '../upgradeability/UpgradeableBase.sol';
 import {WhitelistBase} from '../base/WhitlistBase.sol';
 import {IModuleFactory, IAssetHubFactory} from './IFactory.sol';
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
@@ -36,7 +36,9 @@ struct AssetHubImplInitData {
     address feeCreateAssetModuleFactory;
 }
 
-contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
+contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
+    string private VERSION = '1.0.0';
+
     AssetHubImplData internal _implData;
     mapping(string => address) private _namedHubs;
     mapping(address => AssetHubInfo) private _assetHubs;
@@ -64,6 +66,10 @@ contract AssetHubManager is OwnableUpgradeable, UUPSUpgradeable, WhitelistBase {
         _implData.feeCollectModuleFactory = data.feeCollectModuleFactory;
         _implData.nftGatedModuleFactory = data.nftGatedModuleFactory;
         _implData.feeCreateAssetModuleFactory = data.feeCreateAssetModuleFactory;
+    }
+
+    function version() external virtual override returns (string memory) {
+        return VERSION;
     }
 
     function setWhitelist(address account, bool whitelist) external onlyOwner {

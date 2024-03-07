@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
 import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
 import {ICollectModule} from '../../interfaces/ICollectModule.sol';
 import {ITokenTransfer} from '../../interfaces/ITokenTransfer.sol';
@@ -15,8 +15,10 @@ struct FeeConfig {
     uint256 amount;
 }
 
-contract FeeCollectModule is UUPSUpgradeable, RequiredHubUpgradeable, ICollectModule {
+contract FeeCollectModule is UpgradeableBase, RequiredHubUpgradeable, ICollectModule {
     using SafeERC20 for IERC20;
+
+    string private VERSION = '1.0.0';
 
     mapping(uint256 assetId => FeeConfig config) internal _feeConfig;
 
@@ -54,6 +56,10 @@ contract FeeCollectModule is UUPSUpgradeable, RequiredHubUpgradeable, ICollectMo
         }
         _setFeeConfig(assetId, feeConfig);
         return '';
+    }
+
+    function version() external virtual override returns (string memory) {
+        return VERSION;
     }
 
     function processCollect(

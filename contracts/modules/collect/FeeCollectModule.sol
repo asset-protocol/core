@@ -18,8 +18,6 @@ struct FeeConfig {
 contract FeeCollectModule is UpgradeableBase, RequiredHubUpgradeable, ICollectModule {
     using SafeERC20 for IERC20;
 
-    string private VERSION = '1.0.0';
-
     mapping(uint256 assetId => FeeConfig config) internal _feeConfig;
 
     event FeeConfigChanged(uint256 indexed assetId, FeeConfig config);
@@ -56,10 +54,6 @@ contract FeeCollectModule is UpgradeableBase, RequiredHubUpgradeable, ICollectMo
         }
         _setFeeConfig(assetId, feeConfig);
         return '';
-    }
-
-    function version() external virtual override returns (string memory) {
-        return VERSION;
     }
 
     function processCollect(

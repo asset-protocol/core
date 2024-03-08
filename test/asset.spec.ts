@@ -3,7 +3,6 @@ import { expect } from "chai";
 import { DeployCtx, accounts, deployContracts, deployer, user, userAddress } from "./setup.spec";
 import { AssetHub } from "../typechain-types";
 import { ZeroAddress } from "ethers";
-import { ERRORS } from "./helpers/errors";
 import { ZERO_DATA } from "./contants";
 
 describe("Create Asset", async () => {
@@ -23,14 +22,14 @@ describe("Create Asset", async () => {
       assetCreateModuleData: ZERO_DATA,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
-    })).to.not.be.reverted
+    })).to.not.be.reverted;
     expect(await assetHub.balanceOf(userAddress)).to.be.equal(1)
     expect(await assetHub.count(userAddress)).to.be.equal(1)
     expect(await assetHub.tokenURI(1)).to.be.equal("https://www.google.com")
   })
 
 
-  it("should not allow create asset with invalid publisher", async function () {
+  it("should create asset with other publisher", async function () {
     const thirdUser = accounts[2]
     await expect(assetHub.create({
       publisher: thirdUser,
@@ -40,21 +39,20 @@ describe("Create Asset", async () => {
       assetCreateModuleData: ZERO_DATA,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
-    })).to.be.revertedWithCustomError(assetHub, ERRORS.OwnableInvalidOwner)
-      .withArgs(await user.getAddress())
-  })
+    })).to.not.be.reverted;
 
-  it("should create asset of the third publisher with owner", async function () {
-    const thirdUser = accounts[2]
-    const ownerHub = cts.assetHub.connect(deployer)
-    await expect(ownerHub.create({
-      publisher: thirdUser,
-      contentURI: "https://www.google.com",
-      collectModule: ZeroAddress,
-      collectModuleInitData: "0x",
-      assetCreateModuleData: ZERO_DATA,
-      gatedModule: ZeroAddress,
-      gatedModuleInitData: ZERO_DATA,
-    })).to.be.not.reverted
+    it("should create asset of the third publisher with owner", async function () {
+      const thirdUser = accounts[2]
+      const ownerHub = cts.assetHub.connect(deployer)
+      await expect(ownerHub.create({
+        publisher: thirdUser,
+        contentURI: "https://www.google.com",
+        collectModule: ZeroAddress,
+        collectModuleInitData: "0x",
+        assetCreateModuleData: ZERO_DATA,
+        gatedModule: ZeroAddress,
+        gatedModuleInitData: ZERO_DATA,
+      })).to.be.not.reverted
+    })
   })
 })

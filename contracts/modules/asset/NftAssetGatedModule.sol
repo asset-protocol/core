@@ -30,7 +30,6 @@ contract NftAssetGatedModule is
     ERC165Upgradeable,
     INftAssetGatedModule
 {
-    string private constant VERSION = '1.0.0';
     bytes4 public constant ERC721_INTERFACE = type(IERC721).interfaceId;
     bytes4 public constant ERC1155_INTERFACE = type(IERC1155).interfaceId;
     bytes4 public constant ERC20_INTERFACE = type(IERC20).interfaceId;
@@ -68,10 +67,6 @@ contract NftAssetGatedModule is
         }
         _setConfig(assetId, config);
         return '';
-    }
-
-    function version() external virtual override returns (string memory) {
-        return VERSION;
     }
 
     function isGated(uint256 assetId, address account) external view override returns (bool) {

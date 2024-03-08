@@ -80,8 +80,7 @@ contract TokenTransfer is ITokenTransfer {
     function _verifyErc20Currency(
         address currencyAddress
     ) internal returns (bool registrationWasPerformed) {
-        bool isAlreadyRegistered = verifiedErc20Currencies[currencyAddress];
-        if (isAlreadyRegistered) {
+        if (verifiedErc20Currencies[currencyAddress]) {
             return false;
         } else {
             uint8 decimals = IERC20Metadata(currencyAddress).decimals();

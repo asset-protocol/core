@@ -16,7 +16,6 @@ import {Constants} from './libs/Constants.sol';
 import {DataTypes} from './libs/DataTypes.sol';
 
 contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHub {
-    string private constant VERSION = '1.0.0';
     address private _collectNFTImpl;
     address private _createAssetModule;
     mapping(address => bool) private _collectModuleWhitelisted;
@@ -33,10 +32,6 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         __UUPSUpgradeable_init();
         _collectNFTImpl = collectNFT;
         _createAssetModule = createAssetModule;
-    }
-
-    function version() external virtual override returns (string memory) {
-        return VERSION;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -58,13 +53,8 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
             }
         }
         address pub = data.publisher;
-        address sender = address(0);
-        if (pub != address(0)) {
-            _checkOwner();
-            sender = hubOwner(); // use owner as the sender
-        } else {
+        if (pub == address(0)) {
             pub = _msgSender();
-            sender = pub;
         }
         uint256 res = _createAsset(pub, data);
         AssetHubLogic.handleAssetCreate(

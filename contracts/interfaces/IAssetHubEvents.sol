@@ -10,16 +10,10 @@ interface IAssetHubEvents is IERC721, IERC4906, IERC1967 {
     event AssetCreated(
         address indexed publisher,
         uint256 indexed assetId,
-        string contentURI,
-        address collectNFT,
-        address collectModule,
-        address gatedModule,
-        uint256 timestamp
+        DataTypes.AssetCreateEventData data
     );
 
-    event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data, uint256 timestamp);
-
-    event AssetMetadataUpdate(uint256 indexed assetId, string contentURI, uint256 timestamp);
+    event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data);
 
     /**
      * @dev Emitted when a collect module is added to or removed from the whitelist.

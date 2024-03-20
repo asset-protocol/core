@@ -16,11 +16,11 @@ if (proxyURL) {
   setGlobalDispatcher(proxyAgent)
 }
 
-const DEPLOYER_PRIVATEKEY = vars.get("DEPLOYER_PRIVATEKEY","")
+const DEPLOYER_PRIVATEKEY = vars.get("DEPLOYER_PRIVATEKEY", "")
 const APIKEY_polygonMumbai = vars.get("APIKEY_polygonMumbai", "")
 
 const OPSepolia_RPC = vars.get("OPSEPOLIA_RPC", "")
-const APIKEY_opSepolia = vars.get("APIKEY_opSepolia","")
+const APIKEY_opSepolia = vars.get("APIKEY_opSepolia", "")
 
 const NETWORK = vars.get("DEFAULT_NETWORK", "hardhat")
 

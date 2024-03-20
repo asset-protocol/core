@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Asset Metadata",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Identifies the name to which this asset represents"
+    },
+    "description": {
+      "type": "string",
+      "description": "Describes the asset"
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of asset. Should be one of 'image', 'video', 'audio', 'document', 'other', ...",
+      "oneOf": [
+        {
+          "const": "text",
+          "description": "text document"
+        },
+        {
+          "const": "image",
+          "description": "image file"
+        },
+        {
+          "const": "video",
+          "description": "video file"
+        },
+        {
+          "const": "audio",
+          "description": "audio file"
+        },
+        {
+          "const": "markdown",
+          "description": "markdown document"
+        },
+        {
+          "const": "link",
+          "description": "A URI pointing to a external resource"
+        },
+        {
+          "const": "other",
+          "description": "A catch-all for any other type of asset"
+        }
+      ]
+    },
+    "image": {
+      "type": "string",
+      "description": "A URI pointing to a resource with mime type image/* representing the asset to which this asset represents."
+    },
+    "content": {
+      "type": "string",
+      "description": "A URI pointing to a resource representing the asset to which this asset represents  or string content."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extra": {
+      "type": "object",
+      "description": "Any extra information about the asset",
+      "properties": {
+        "video": {
+          "type": "object",
+          "dependencies": {
+            "type": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "const": "video"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "properties": {
+            "duration": {
+              "type": "number",
+              "description": "The duration of the video in seconds"
+            },
+            "chapters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the chapter"
+                  },
+                  "start": {
+                    "type": "number",
+                    "description": "The start time of the chapter in seconds"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "dependencies": {
+            "type": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "const": "audio"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "properties": {
+            "duration": {
+              "type": "number",
+              "description": "The duration of the audio in seconds"
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["name", "content", "type"]
+}

@@ -1,9 +1,26 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import { DeployCtx, accounts, deployContracts, deployer, user, userAddress } from "./setup.spec";
-import { AssetHub } from "../typechain-types";
-import { ZeroAddress } from "ethers";
+import { DeployCtx, accounts, deployContracts, deployer, deployerAddress, hubManager, user, userAddress } from "./setup.spec";
+import { AssetHub, AssetHub__factory } from "../typechain-types";
+import { AbiCoder, ZeroAddress } from "ethers";
 import { ZERO_DATA } from "./contants";
+import { createAsset, createAssetStatic } from "./helpers/asset";
+
+const CURRENT_ASSETHUB_VERSION = "0.1.0";
+
+describe("Upgrade hub", async () => {
+  let cts: DeployCtx = {} as any
+  beforeEach(async function () {
+    cts = await loadFixture(deployContracts)
+  })
+
+  it("version should increase when upgrade hub", async () => {
+    const nextHub = await hubManager.createHubImpl.staticCall(ZERO_DATA);
+    await expect(hubManager.createHubImpl(ZERO_DATA)).to.not.be.reverted;
+    await expect(cts.assetHub.upgradeToAndCall(nextHub, ZERO_DATA)).to.not.be.reverted;
+    expect(await cts.assetHub.version()).to.be.equal(CURRENT_ASSETHUB_VERSION);
+  })
+});
 
 describe("Create Asset", async () => {
   let cts: DeployCtx = {} as any
@@ -40,19 +57,37 @@ describe("Create Asset", async () => {
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
     })).to.not.be.reverted;
+  })
 
-    it("should create asset of the third publisher with owner", async function () {
-      const thirdUser = accounts[2]
-      const ownerHub = cts.assetHub.connect(deployer)
-      await expect(ownerHub.create({
-        publisher: thirdUser,
-        contentURI: "https://www.google.com",
-        collectModule: ZeroAddress,
-        collectModuleInitData: "0x",
-        assetCreateModuleData: ZERO_DATA,
-        gatedModule: ZeroAddress,
-        gatedModuleInitData: ZERO_DATA,
-      })).to.be.not.reverted
-    })
+  it("should create asset of the third publisher with owner", async function () {
+    const thirdUser = accounts[2]
+    const ownerHub = cts.assetHub.connect(deployer)
+    await expect(ownerHub.create({
+      publisher: thirdUser,
+      contentURI: "https://www.google.com",
+      collectModule: ZeroAddress,
+      collectModuleInitData: "0x",
+      assetCreateModuleData: ZERO_DATA,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
+    })).to.be.not.reverted
+  })
+
+  it("should update asset", async function () {
+    assetHub = cts.assetHub.connect(user)
+    const tokenId = await createAssetStatic(assetHub, ZeroAddress, ZERO_DATA);
+    await expect(createAsset(assetHub, ZeroAddress, ZERO_DATA)).to.not.be.reverted;
+
+    const initData = AbiCoder.defaultAbiCoder().encode(
+      ["address", "address", "uint256"],
+      ["0xc2ADF187D9B064F68FcD8183195cddDB33E10E8F", "0x4845Af017fc4A19B0D053806B7288bB269de05b3", 10]
+    )
+    await expect(assetHub.update(tokenId, {
+      contentURI: "https://www.baidu.com",
+      collectModule: cts.feeCollectModule,
+      collectModuleInitData: initData,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: ZERO_DATA,
+    })).to.not.be.reverted;
   })
 })

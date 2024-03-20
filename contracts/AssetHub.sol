@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {IERC165} from '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import {UpgradeableBase} from './upgradeability/UpgradeableBase.sol';
+import {IERC165} from '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import {IAssetHub} from './interfaces/IAssetHub.sol';
 import {ICollectNFT} from './interfaces/ICollectNFT.sol';
 import {ICreateAssetModule} from './interfaces/ICreateAssetModule.sol';
@@ -25,19 +25,23 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         string memory symbol,
         address admin,
         address collectNFT,
-        address createAssetModule
+        address createAssetModule,
+        address whitelistedCollectModule
     ) external initializer {
         __AssetNFTBase_init(name, symbol);
         __Ownable_init(admin);
         __UUPSUpgradeable_init();
         _collectNFTImpl = collectNFT;
         _createAssetModule = createAssetModule;
+        if (whitelistedCollectModule != address(0)) {
+            _collectModuleWhitelist(whitelistedCollectModule, true);
+        }
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function transferHubOwnership(address newOwner) external {
-        transferOwnership(newOwner);
+    function version() external view virtual override returns (string memory) {
+        return '0.1.0';
     }
 
     function hubOwner() public view override returns (address) {
@@ -73,9 +77,12 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         DataTypes.AssetUpdateData calldata data
     ) external whenNotPaused {
         _requireAssetPublisher(assetId, _msgSender());
-        _setCollectModule(assetId, data.collectModule);
-        _setGatedModule(assetId, data.gatedModule);
-        emit Events.AssetUpdated(assetId, data, block.timestamp);
+        if (data.collectModule != address(0)) {
+            if (!_collectModuleWhitelisted[data.collectModule]) {
+                revert Errors.CollectModuleNotWhitelisted();
+            }
+        }
+        AssetHubLogic.UpdateAsset(assetId, _ownerOf(assetId), data, _assets);
     }
 
     function setCreateAssetModule(address assetModule) external onlyOwner {
@@ -107,11 +114,15 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         address collectModule,
         bool whitelist
     ) external whenNotPaused onlyOwner {
+        _collectModuleWhitelist(collectModule, whitelist);
+    }
+
+    function _collectModuleWhitelist(address collectModule, bool whitelist) internal {
         _collectModuleWhitelisted[collectModule] = whitelist;
         emit Events.CollectModuleWhitelisted(collectModule, whitelist, block.timestamp);
     }
 
-    function isCollectModuleWhitelisted(address followModule) external view returns (bool) {
+    function isCollectModuleWhitelisted(address followModule) public view returns (bool) {
         return _collectModuleWhitelisted[followModule];
     }
 
@@ -120,12 +131,6 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         bytes calldata collectModuleData
     ) external override whenNotPaused returns (uint256) {
         _checkAssetId(assetId);
-        address collectModule = _assets[assetId].collectModule;
-        if (collectModule != address(0)) {
-            if (!_collectModuleWhitelisted[collectModule]) {
-                revert Errors.CollectModuleNotWhitelisted();
-            }
-        }
         address collector = _msgSender();
         return
             AssetHubLogic.collect(
@@ -179,23 +184,5 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         bytes4 interfaceId
     ) public view virtual override(AssetNFTBase) returns (bool) {
         return interfaceId == type(IAssetHub).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    function _setGatedModule(uint256 assetId, address gatedModule) internal {
-        if (gatedModule != address(0)) {
-            if (!IERC165(gatedModule).supportsInterface(type(IAssetGatedModule).interfaceId)) {
-                revert Errors.InvalidGatedModule();
-            }
-        }
-        _assets[assetId].gatedModule = gatedModule;
-    }
-
-    function _setCollectModule(uint256 assetId, address collectModule) internal {
-        if (collectModule != address(0)) {
-            if (!_collectModuleWhitelisted[collectModule]) {
-                revert Errors.CollectModuleNotWhitelisted();
-            }
-        }
-        _assets[assetId].collectModule = collectModule;
     }
 }

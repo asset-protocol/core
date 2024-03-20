@@ -1,9 +1,9 @@
 {
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test",
+    "test": "hardhat test --network hardhat",
     "gen:go": "hardhat export-abi --no-compile && abigen --abi=abi/AssetHub.json --pkg=assethub --out=asset-go/assethub.go",
-    "deploy:dev":"hardhat ignition deploy ignition/modules/assethub-core.ts --network polygonMumbai"
+    "deploy:test":"hardhat ignition deploy ignition/modules/deploy-manager.ts --network polygonMumbai --verify"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "2.0.0",

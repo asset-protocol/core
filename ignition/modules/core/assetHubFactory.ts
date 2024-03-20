@@ -1,11 +1,12 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./contracts";
+import { ZeroAddress } from "ethers";
 
 export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) => {
   const assethubFactory = m.contract(Contracts.AssetHubFactory, [], {
     id: Contracts.AssetHubFactory,
     libraries: {
-      "contracts/base/AssetHubLogic.sol:AssetHubLogic": m.contract(Contracts.AssetHubLogic, [])
+      "contracts/base/AssetHubLogic.sol:AssetHubLogic": m.library(Contracts.AssetHubLogic)
     }
   });
   return { assethubFactory };
@@ -39,6 +40,6 @@ export const assethubManagerModule = buildModule(Contracts.AssetHubManager, (m) 
 export const deployAssetHubModule = buildModule("DeployAssetHub", (m) => {
   const deployer = m.getAccount(0);
   const { assethubManager } = m.useModule(assethubManagerModule)
-  m.call(assethubManager, "deploy", [[deployer, "DeSchool", true]])
+  m.call(assethubManager, "deploy", [[deployer, "DeSchool", true, ZeroAddress]])
   return { assethubManager }
 })

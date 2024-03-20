@@ -47,6 +47,10 @@ contract NftAssetGatedModule is
         __RequiredHub_init(hub);
     }
 
+    function version() external view virtual override returns (string memory) {
+        return '1.0.0';
+    }
+
     function setConfig(uint256 assetId, NftGatedConfig[] calldata config) external {
         _checkAssetOwner(assetId, msg.sender);
         _setConfig(assetId, config);

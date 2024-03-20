@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.20;
 
 import {DataTypes} from './DataTypes.sol';
@@ -8,16 +7,12 @@ library Events {
     event AssetCreated(
         address indexed publisher,
         uint256 indexed assetId,
-        string contentURI,
-        address collectNFT,
-        address collectModule,
-        address gatedModule,
-        uint256 timestamp
+        DataTypes.AssetCreateEventData data
     );
 
-    event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data, uint256 timestamp);
+    event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data);
 
-    event AssetMetadataUpdate(uint256 indexed assetId, string contentURI, uint256 timestamp);
+    event MetadataUpdate(uint256 _tokenId);
 
     /**
      * @dev Emitted when a collect module is added to or removed from the whitelist.

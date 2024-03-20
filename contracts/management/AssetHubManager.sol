@@ -41,7 +41,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         address assetHub,
         address feeCollectModule,
         address nftGatedModule,
-        address feeAssetCreateModule
+        address assetCreateModule
     );
 
     error NameHubExisted(string hubName);
@@ -52,6 +52,10 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         __UUPSUpgradeable_init();
         __AssetHubFactory_init(data);
         _setWhitelist(_msgSender(), true);
+    }
+
+    function version() external view virtual override returns (string memory) {
+        return '1.0.0';
     }
 
     function __AssetHubFactory_init(AssetHubImplData calldata data) internal onlyInitializing {
@@ -127,7 +131,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         return IModuleFactory(_implData.nftGatedModuleFactory).create(hub, initData);
     }
 
-    function createFeeAssetCreateModuleImpl(
+    function createFeeAssetCreateModule(
         address hub,
         bytes calldata initData
     ) external returns (address) {
@@ -150,7 +154,6 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
                 ''
             );
         }
-        IAssetHub(assetHub).initialize(data.name, data.name, admin, collectNFT, address(0));
 
         AssetHubInfo memory info = AssetHubInfo({
             assetHub: assetHub,
@@ -161,6 +164,16 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         });
         _assetHubs[assetHub] = info;
         _namedHubs[data.name] = assetHub;
+
+        IAssetHub(assetHub).initialize(
+            data.name,
+            data.name,
+            admin,
+            collectNFT,
+            data.assetCreateModule,
+            info.feeCollectModule
+        );
+
         emit AssetHubDeployed(
             admin,
             data.name,

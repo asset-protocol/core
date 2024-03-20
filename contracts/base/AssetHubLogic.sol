@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 import {Strings} from '@openzeppelin/contracts/utils/Strings.sol';
 import {Clones} from '@openzeppelin/contracts/proxy/Clones.sol';
+import {IERC165} from '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import {Constants} from '../libs/Constants.sol';
 import {DataTypes} from '../libs/DataTypes.sol';
 import {Events} from '../libs/Events.sol';
@@ -45,7 +46,48 @@ library AssetHubLogic {
         }
         address collectNFT = _deployCollectNFT(collectNFTImpl, assetId, publisher);
         assets[assetId].collectNFT = collectNFT;
-        emitAssetCreated(assetId, publisher, assets[assetId]);
+        emitAssetCreated(assetId, publisher, assets[assetId], data);
+    }
+
+    function UpdateAsset(
+        uint256 assetId,
+        address publiser,
+        DataTypes.AssetUpdateData calldata data,
+        mapping(uint256 => DataTypes.Asset) storage assets
+    ) external {
+        bool isUpdate = false;
+        if (
+            !Strings.equal(data.contentURI, '') &&
+            !Strings.equal(data.contentURI, assets[assetId].contentURI)
+        ) {
+            isUpdate = true;
+            assets[assetId].contentURI = data.contentURI;
+            emit Events.MetadataUpdate(assetId);
+        }
+        if (data.collectModule != address(0)) {
+            isUpdate = true;
+            ICollectModule(data.collectModule).initialModule(
+                publiser,
+                assetId,
+                data.collectModuleInitData
+            );
+            assets[assetId].collectModule = data.collectModule;
+        }
+        if (data.gatedModule != address(0)) {
+            isUpdate = true;
+            if (!IERC165(data.gatedModule).supportsInterface(type(IAssetGatedModule).interfaceId)) {
+                revert Errors.InvalidGatedModule();
+            }
+            IAssetGatedModule(data.gatedModule).initialModule(
+                publiser,
+                assetId,
+                data.gatedModuleInitData
+            );
+            assets[assetId].gatedModule = data.gatedModule;
+        }
+        if (isUpdate) {
+            emit Events.AssetUpdated(assetId, data);
+        }
     }
 
     function collect(
@@ -129,16 +171,18 @@ library AssetHubLogic {
     function emitAssetCreated(
         uint assetId,
         address publisher,
-        DataTypes.Asset storage asset
+        DataTypes.Asset storage asset,
+        DataTypes.AssetCreateData calldata data
     ) internal {
-        emit Events.AssetCreated(
-            publisher,
-            assetId,
-            asset.contentURI,
-            asset.collectNFT,
-            asset.collectModule,
-            asset.gatedModule,
-            asset.timestamp
-        );
+        DataTypes.AssetCreateEventData memory eventData = DataTypes.AssetCreateEventData({
+            contentURI: asset.contentURI,
+            assetCreateModuleData: data.assetCreateModuleData,
+            collectModule: asset.collectModule,
+            collectModuleInitData: data.collectModuleInitData,
+            collectNFT: asset.collectNFT,
+            gatedModule: asset.gatedModule,
+            gatedModuleInitData: data.gatedModuleInitData
+        });
+        emit Events.AssetCreated(publisher, assetId, eventData);
     }
 }

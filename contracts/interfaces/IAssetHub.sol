@@ -9,7 +9,8 @@ interface IAssetHub {
         string memory symbol,
         address admin,
         address collectNFT,
-        address createAssetModule
+        address createAssetModule,
+        address whitelistedCollectModule
     ) external;
 
     /// @notice create a new asset
@@ -31,8 +32,6 @@ interface IAssetHub {
     ) external;
 
     function hubOwner() external view returns (address);
-
-    function transferHubOwnership(address newOwner) external;
 
     function assetPublisher(uint256 assetId) external view returns (address);
 }

@@ -1,8 +1,6 @@
 import { expect } from "chai";
 import { deployer, hubManager } from "../setup.spec";
 import { ZeroAddress } from "ethers";
-import { AssetHub__factory } from "../../typechain-types";
-import { ethers } from "hardhat";
 
 const HUB_NAME = "TEST_HUB"
 
@@ -27,7 +25,7 @@ describe("AssetHubFactory", async function () {
       .withArgs(HUB_NAME);
   })
 
-  it("should  deploy a new name hub", async function () {
+  it("should deploy a new name hub", async function () {
     await expect(hubManager.deploy({
       admin: await deployer.getAddress(),
       name: HUB_NAME + "_V2",

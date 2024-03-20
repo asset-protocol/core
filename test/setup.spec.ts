@@ -1,9 +1,9 @@
 import { ethers, upgrades } from 'hardhat';
 import "@openzeppelin/hardhat-upgrades";
-import { AssetHub, AssetHub__factory, AssetHubFactory__factory, AssetHubLogic, AssetHubLogic__factory, AssetHubManager, AssetHubManager__factory, CollectNFT, CollectNFT__factory, CollectNFTFactory__factory, Events, Events__factory, FeeCollectModuleFactory__factory, FeeCreateAssetModuleFactory__factory, NftAssetGatedModuleFactory__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, TokenTransfer__factory, UUPSUpgradeable, UUPSUpgradeable__factory } from "../typechain-types";
-import { Contract, ContractFactory, Signer, ZeroAddress } from 'ethers';
+import { AssetHub, AssetHubFactory__factory, AssetHubLogic__factory, AssetHubManager, AssetHubManager__factory, CollectNFTFactory__factory, Events, Events__factory, FeeCollectModuleFactory__factory, FeeCreateAssetModuleFactory__factory, NftAssetGatedModuleFactory__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory } from "../typechain-types";
+import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
-import { AssetHubLibraryAddresses } from '../typechain-types/factories/contracts/core/AssetHub__factory';
+import { AssetHubLibraryAddresses } from '../typechain-types/factories/contracts/AssetHub__factory';
 
 export let accounts: Signer[];
 export let deployer: Signer;
@@ -20,6 +20,7 @@ export let hubManager: AssetHubManager;
 
 export type DeployCtx = {
   assetHub: AssetHub
+  feeCollectModule: string
   tokenImpl: TestToken
 }
 
@@ -31,16 +32,23 @@ export async function deployContracts(): Promise<DeployCtx> {
     collectNft: true,
     assetCreateModule: ZeroAddress
   })
-  await expect(hubManager.deploy({
+  const res = await hubManager.deploy({
     name: "TestHUb",
     admin: deployerAddress,
     collectNft: true,
     assetCreateModule: ZeroAddress
-  })).to.not.be.reverted;
+  });
+  const tx = await res.wait();
+  const event = tx?.logs.find(l => l.topics[0] === hubManager.interface.getEvent("AssetHubDeployed").topicHash)
+  expect(event).to.not.be.undefined
+  const typedLog = hubManager.interface.parseLog(event!)
+  expect(typedLog).to.not.be.null
+  expect(typedLog?.args[1]).to.be.equal("TestHUb")
   const assetHub = await ethers.getContractAt("AssetHub", hubAddress, deployer)
   return {
     assetHub,
     tokenImpl,
+    feeCollectModule: typedLog?.args[3]
   }
 }
 

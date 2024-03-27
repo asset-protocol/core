@@ -6,7 +6,7 @@ export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) 
   const assethubFactory = m.contract(Contracts.AssetHubFactory, [], {
     id: Contracts.AssetHubFactory,
     libraries: {
-      "contracts/base/AssetHubLogic.sol:AssetHubLogic": m.library(Contracts.AssetHubLogic)
+      "AssetHubLogic": m.library(Contracts.AssetHubLogic)
     }
   });
   return { assethubFactory };
@@ -19,22 +19,27 @@ export const assethubManagerModule = buildModule(Contracts.AssetHubManager, (m) 
   const assethubManagerProxy = m.contract("UpgradeableProxy", [assetHubManagerImpl, "0x"], {
     id: Contracts.AssetHubManager + "_proxy",
   })
-  const assethubManager = m.contractAt(Contracts.AssetHubManager, assethubManagerProxy)
+  const assethubManager = m.contractAt(Contracts.AssetHubManager, assethubManagerProxy);
+  return { assethubManager, assethubManagerProxy };
+});
+
+export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager + "Init", (m) => {
+  const { assethubManager } = m.useModule(assethubManagerModule);
   const { assethubFactory } = m.useModule(assethubFactoryModule);
-  const feeCollectModuleFactory = m.contract(Contracts.FeeCollectModuleFactory, []);
+  const tokenCollectModuleFactory = m.contract(Contracts.TokenCollectModuleFactory, []);
   const nftGatedModuleFactory = m.contract(Contracts.NftAssetGatedModuleFactory, []);
-  const feeCreateAssetModuleFactory = m.contract(Contracts.FeeCreateAssetModuleFactory, [])
+  const tokenAssetCreateModuleFactory = m.contract(Contracts.TokenAssetCreateModuleFactory, [])
   const collectNFTFactory = m.contract(Contracts.CollectNFTFactory, [])
 
   m.call(assethubManager, "initialize", [
     [
       assethubFactory,
-      feeCollectModuleFactory,
+      tokenCollectModuleFactory,
       nftGatedModuleFactory,
-      feeCreateAssetModuleFactory,
+      tokenAssetCreateModuleFactory,
       collectNFTFactory
     ]]);
-  return { assethubManager, assethubManagerProxy };
+  return { assethubManager };
 });
 
 export const deployAssetHubModule = buildModule("DeployAssetHub", (m) => {

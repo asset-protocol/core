@@ -58,16 +58,16 @@ describe("Subcribe to Asset with free module", async function () {
 
   // test set collect module whitelist
   it("should revert when set collect module whitelist by non admin", async function () {
-    const sm = await new EmptyCollectModule__factory(user).deploy()
-    const smAdrr = await sm.getAddress()
     const assetHub = cts.assetHub.connect(user)
+    const sm = await new EmptyCollectModule__factory(user).deploy(assetHub)
+    const smAdrr = await sm.getAddress()
     await expect(assetHub.collectModuleWhitelist(smAdrr, true))
       .to.be.revertedWithCustomError(assetHub, ERRORS.OwnableUnauthorizedAccount)
       .withArgs(userAddress)
   })
 
   it("should set collect module whitelist by admin", async function () {
-    const sm = await new EmptyCollectModule__factory(user).deploy()
+    const sm = await new EmptyCollectModule__factory(user).deploy(cts.assetHub)
     const smAdrr = await sm.getAddress()
     const adminAssertHub = cts.assetHub.connect(deployer)
     await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true)).to.not.be.reverted
@@ -75,7 +75,7 @@ describe("Subcribe to Asset with free module", async function () {
 
   it("isCollectModuleWhitelisted should return true after set collect module whitelist", async function () {
     const adminAssertHub = cts.assetHub.connect(deployer)
-    const sm = await new EmptyCollectModule__factory(user).deploy()
+    const sm = await new EmptyCollectModule__factory(user).deploy(cts.assetHub)
     const smAdrr = await sm.getAddress()
 
     expect(await adminAssertHub.isCollectModuleWhitelisted(smAdrr)).to.be.false
@@ -85,7 +85,7 @@ describe("Subcribe to Asset with free module", async function () {
   })
 
   it("should revert when create asset with a collect module that is not whitelisted", async function () {
-    const sm = await new EmptyCollectModule__factory(user).deploy()
+    const sm = await new EmptyCollectModule__factory(user).deploy(cts.assetHub)
     const smAdrr = await sm.getAddress()
     const assetHub = cts.assetHub.connect(user)
     await expect(assetHub.create({
@@ -100,7 +100,7 @@ describe("Subcribe to Asset with free module", async function () {
   })
 
   it("should created asset with a collect module that is whitelisted", async function () {
-    const sm = await new EmptyCollectModule__factory(user).deploy()
+    const sm = await new EmptyCollectModule__factory(user).deploy(cts.assetHub)
     const smAdrr = await sm.getAddress()
 
     const adminAssertHub = cts.assetHub.connect(deployer)

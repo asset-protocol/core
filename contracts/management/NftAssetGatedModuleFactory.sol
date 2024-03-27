@@ -10,7 +10,7 @@ contract NftAssetGatedModuleFactory is IModuleFactory {
         address hub,
         bytes calldata initData
     ) external override returns (address) {
-        UpgradeableProxy proxy = new UpgradeableProxy(_createImpl(hub, initData), '');
+        UpgradeableProxy proxy = new UpgradeableProxy(_createImpl(hub, initData), new bytes(0));
         NftAssetGatedModule(address(proxy)).initialize(hub);
         return address(proxy);
     }

@@ -7,28 +7,28 @@ import {ICreateAssetModule} from '../../interfaces/ICreateAssetModule.sol';
 import {RequiredHub} from '../../base/RequiredHub.sol';
 import {Errors} from '../../libs/Errors.sol';
 
-struct FeeCreateAssetConfig {
+struct TokenCreateConfig {
     address tokenContract;
     uint256 amount;
     address account;
     bool isPay;
 }
 
-contract FeeCreateAssetModule is RequiredHub, ICreateAssetModule {
+contract TokenAssetCreateModule is RequiredHub, ICreateAssetModule {
     using SafeERC20 for IERC20;
 
-    FeeCreateAssetConfig _config;
+    TokenCreateConfig _config;
 
-    event ConfigChanged(address hub, FeeCreateAssetConfig config);
+    event ConfigChanged(address hub, TokenCreateConfig config);
 
     error HubNotSet();
     error AccountNotSet();
 
     constructor(address hub) RequiredHub(hub) {}
 
-    function setConfig(FeeCreateAssetConfig calldata config) external onlyHubOwner {
+    function setConfig(TokenCreateConfig calldata config) external onlyHubOwner {
         _checkConfig(config);
-        _config = FeeCreateAssetConfig({
+        _config = TokenCreateConfig({
             tokenContract: config.tokenContract,
             amount: config.amount,
             account: config.account,
@@ -37,7 +37,7 @@ contract FeeCreateAssetModule is RequiredHub, ICreateAssetModule {
         emit ConfigChanged(HUB, config);
     }
 
-    function getConfig() external view returns (FeeCreateAssetConfig memory) {
+    function getConfig() external view returns (TokenCreateConfig memory) {
         return _config;
     }
 
@@ -65,7 +65,7 @@ contract FeeCreateAssetModule is RequiredHub, ICreateAssetModule {
         return '';
     }
 
-    function _checkConfig(FeeCreateAssetConfig calldata config) internal pure {
+    function _checkConfig(TokenCreateConfig calldata config) internal pure {
         if (config.tokenContract == address(0)) {
             revert HubNotSet();
         }

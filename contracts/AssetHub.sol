@@ -26,15 +26,17 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         address admin,
         address collectNFT,
         address createAssetModule,
-        address whitelistedCollectModule
+        address[] memory whitelistedCollectModules
     ) external initializer {
         __AssetNFTBase_init(name, symbol);
         __Ownable_init(admin);
         __UUPSUpgradeable_init();
         _collectNFTImpl = collectNFT;
         _createAssetModule = createAssetModule;
-        if (whitelistedCollectModule != address(0)) {
-            _collectModuleWhitelist(whitelistedCollectModule, true);
+        for (uint i = 0; i < whitelistedCollectModules.length; i++) {
+            if (whitelistedCollectModules[i] != address(0)) {
+                _collectModuleWhitelist(whitelistedCollectModules[i], true);
+            }
         }
     }
 
@@ -129,7 +131,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
     function collect(
         uint256 assetId,
         bytes calldata collectModuleData
-    ) external override whenNotPaused returns (uint256) {
+    ) external payable override whenNotPaused returns (uint256) {
         _checkAssetId(assetId);
         address collector = _msgSender();
         return

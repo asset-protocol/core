@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {ICollectModule} from '../../interfaces/ICollectModule.sol';
+import {CollectModuleBase} from './base/CollectModuleBase.sol';
 
-contract EmptyCollectModule is ICollectModule {
+contract EmptyCollectModule is CollectModuleBase {
+    constructor(address hub) CollectModuleBase(hub) {}
+
     function processCollect(
         address,
         address,
         uint256,
         bytes calldata
-    ) external pure override returns (bytes memory) {
+    ) external payable override returns (bytes memory) {
         return '';
     }
 

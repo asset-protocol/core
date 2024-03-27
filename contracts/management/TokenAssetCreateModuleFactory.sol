@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {IModuleFactory} from './IFactory.sol';
-import {FeeCreateAssetModule} from '../modules/asset/FeeCreateAssetModule.sol';
+import {TokenAssetCreateModule} from '../modules/asset/TokenAssetCreateModule.sol';
 
-contract FeeCreateAssetModuleFactory is IModuleFactory {
+contract TokenAssetCreateModuleFactory is IModuleFactory {
     function createUUPSUpgradeable(
         address,
         bytes calldata
@@ -13,7 +13,7 @@ contract FeeCreateAssetModuleFactory is IModuleFactory {
     }
 
     function create(address hub, bytes calldata) external override returns (address) {
-        FeeCreateAssetModule impl = new FeeCreateAssetModule(hub);
+        TokenAssetCreateModule impl = new TokenAssetCreateModule(hub);
         return address(impl);
     }
 }

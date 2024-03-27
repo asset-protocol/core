@@ -66,7 +66,7 @@ describe("Create Asset", async () => {
       publisher: thirdUser,
       contentURI: "https://www.google.com",
       collectModule: ZeroAddress,
-      collectModuleInitData: "0x",
+      collectModuleInitData: ZERO_DATA,
       assetCreateModuleData: ZERO_DATA,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
@@ -80,11 +80,11 @@ describe("Create Asset", async () => {
 
     const initData = AbiCoder.defaultAbiCoder().encode(
       ["address", "address", "uint256"],
-      ["0xc2ADF187D9B064F68FcD8183195cddDB33E10E8F", "0x4845Af017fc4A19B0D053806B7288bB269de05b3", 10]
+      ["0xc2ADF187D9B064F68FcD8183195cddDB33E10E8F", ZeroAddress, 10]
     )
     await expect(assetHub.update(tokenId, {
       contentURI: "https://www.baidu.com",
-      collectModule: cts.feeCollectModule,
+      collectModule: cts.tokenCollectModule,
       collectModuleInitData: initData,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,

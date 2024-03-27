@@ -5,9 +5,10 @@ import {DataTypes} from './DataTypes.sol';
 
 library Events {
     event AssetCreated(
-        address indexed publisher,
         uint256 indexed assetId,
-        DataTypes.AssetCreateEventData data
+        address indexed publisher,
+        address collectNFT,
+        bytes createModuleData
     );
 
     event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data);

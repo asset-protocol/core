@@ -3,20 +3,20 @@ export enum Contracts {
   AssetHub = "AssetHub",
   TestToken = "TestToken",
 
-  FeeCreateAssetModule = "FeeCreateAssetModule",
+  TokenAssetCreateModule = "TokenAssetCreateModule",
   NftAssetGatedModule = "NftAssetGatedModule",
 
   CollectNFT = "CollectNFT",
   EmptyCollectModule = "EmptyCollectModule",
-  FeeCollectModule = "FeeCollectModule",
+  TokenCollectModule = "TokenCollectModule",
   RevertCollectModule = "RevertCollectModule",
 
   AssetHubLogic = "AssetHubLogic",
 
   AssetHubManager = "AssetHubManager",
   AssetHubFactory = "AssetHubFactory",
-  FeeCollectModuleFactory = "FeeCollectModuleFactory",
+  TokenCollectModuleFactory = "TokenCollectModuleFactory",
   NftAssetGatedModuleFactory = "NftAssetGatedModuleFactory",
-  FeeCreateAssetModuleFactory = "FeeCreateAssetModuleFactory",
+  TokenAssetCreateModuleFactory = "TokenAssetCreateModuleFactory",
   CollectNFTFactory = "CollectNFTFactory",
 }

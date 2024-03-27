@@ -9,6 +9,7 @@ import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
 import {INftAssetGatedModule} from '../../interfaces/INftAssetGatedModule.sol';
 import {IAssetGatedModule} from '../../interfaces/IAssetGatedModule.sol';
 import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
+import {Utils} from '../../libs/Utils.sol';
 
 enum NftGatedType {
     ERC20,
@@ -106,15 +107,15 @@ contract NftAssetGatedModule is
             revert NftContractIsZeroAddress();
         }
         if (config.nftType == NftGatedType.ERC20) {
-            if (!_isERC20(config.nftContract)) {
-                revert ContractTypeNotMatched(config.nftContract, config.nftType);
-            }
+            // if (!Utils.checkSuportsInterface(config.nftContract, ERC20_INTERFACE)) {
+            //     revert ContractTypeNotMatched(config.nftContract, config.nftType);
+            // }
         } else if (config.nftType == NftGatedType.ERC721) {
-            if (!_isERC721(config.nftContract)) {
+            if (!Utils.checkSuportsInterface(config.nftContract, ERC721_INTERFACE)) {
                 revert ContractTypeNotMatched(config.nftContract, config.nftType);
             }
         } else if (config.nftType == NftGatedType.ERC1155) {
-            if (!_isERC1155(config.nftContract)) {
+            if (!Utils.checkSuportsInterface(config.nftContract, ERC1155_INTERFACE)) {
                 revert ContractTypeNotMatched(config.nftContract, config.nftType);
             }
         } else {
@@ -136,17 +137,5 @@ contract NftAssetGatedModule is
         return
             interfaceId == type(IAssetGatedModule).interfaceId ||
             super.supportsInterface(interfaceId);
-    }
-
-    function _isERC721(address nftContract) internal view returns (bool) {
-        return IERC721(nftContract).supportsInterface(ERC721_INTERFACE);
-    }
-
-    function _isERC1155(address nftContract) internal view returns (bool) {
-        return IERC1155(nftContract).supportsInterface(ERC1155_INTERFACE);
-    }
-
-    function _isERC20(address /* nftContract */) internal pure returns (bool) {
-        return true;
     }
 }

@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {ICollectModule} from '../../interfaces/ICollectModule.sol';
-import {RequiredHub} from '../../base/RequiredHub.sol';
+import {CollectModuleBase} from './base/CollectModuleBase.sol';
 
-contract RevertCollectModule is RequiredHub, ICollectModule {
-    constructor(address hub) RequiredHub(hub) {}
+contract RevertCollectModule is CollectModuleBase {
+    constructor(address hub) CollectModuleBase(hub) {}
 
     function processCollect(
         address,
         address,
         uint256,
         bytes calldata
-    ) external view override onlyHub returns (bytes memory) {
+    ) external payable override onlyHub returns (bytes memory) {
         revert('RevertCollectModule');
     }
 

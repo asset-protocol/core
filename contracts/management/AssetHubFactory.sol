@@ -8,7 +8,7 @@ import {AssetHub} from '../AssetHub.sol';
 contract AssetHubFactory is IAssetHubFactory {
     function createUUPSUpgradeable(bytes calldata initData) external returns (address) {
         address assetHubImpl = _createImpl(initData);
-        UpgradeableProxy proxy = new UpgradeableProxy(assetHubImpl, '');
+        UpgradeableProxy proxy = new UpgradeableProxy(assetHubImpl, new bytes(0));
         return address(proxy);
     }
 

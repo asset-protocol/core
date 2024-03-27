@@ -1,1 +1,1 @@
-export const ZERO_DATA = "0x"
+export const ZERO_DATA = new Uint8Array()

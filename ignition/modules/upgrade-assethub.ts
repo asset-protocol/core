@@ -10,7 +10,7 @@ export default buildModule("UpgradeAssetHub", (m) => {
   const hubNext = m.contract(Contracts.AssetHub, [], {
     id:"nextAssetHub",
     libraries: {
-      "contracts/base/AssetHubLogic.sol:AssetHubLogic": m.library(Contracts.AssetHubLogic)
+      "AssetHubLogic": m.library(Contracts.AssetHubLogic)
     }
   })
 

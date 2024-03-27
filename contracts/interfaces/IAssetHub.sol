@@ -10,7 +10,7 @@ interface IAssetHub {
         address admin,
         address collectNFT,
         address createAssetModule,
-        address whitelistedCollectModule
+        address[] memory whitelistedCollectModules
     ) external;
 
     /// @notice create a new asset
@@ -21,7 +21,7 @@ interface IAssetHub {
     /// @notice collect to an asset
     /// @param assetId the id of the asset
     /// @param data the data of the subscription
-    function collect(uint256 assetId, bytes calldata data) external returns (uint256);
+    function collect(uint256 assetId, bytes calldata data) external payable returns (uint256);
 
     function emitCollectNFTTransferEvent(
         address publiser,

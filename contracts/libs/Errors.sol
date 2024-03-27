@@ -14,4 +14,6 @@ library Errors {
     error CollectModuleNotWhitelisted();
     error InvalidCreateAssetModule();
     error InvalidGatedModule();
+    error InvalidCollectModule();
+    error InvalidModule();
 }

@@ -13,5 +13,5 @@ interface ICollectModule {
         address publisher,
         uint256 assetId,
         bytes calldata data
-    ) external returns (bytes memory);
+    ) external payable returns (bytes memory);
 }

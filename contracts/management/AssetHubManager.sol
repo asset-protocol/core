@@ -36,12 +36,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
     mapping(string => address) private _namedHubs;
     mapping(address => AssetHubInfo) private _assetHubs;
 
-    event AssetHubDeployed(
-        address indexed admin,
-        string indexed name,
-        address indexed assetHub,
-        AssetHubInfo data
-    );
+    event AssetHubDeployed(address indexed admin, string name, address assetHub, AssetHubInfo data);
 
     error NameHubExisted(string hubName);
     error AssetHubNotExisted();
@@ -49,7 +44,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
     function initialize(AssetHubImplData calldata data) external initializer {
         __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
-        __AssetHubFactory_init(data);
+        __AssetHubManager_init(data);
         _setWhitelist(_msgSender(), true);
     }
 
@@ -57,7 +52,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         return '1.0.0';
     }
 
-    function __AssetHubFactory_init(AssetHubImplData calldata data) internal onlyInitializing {
+    function __AssetHubManager_init(AssetHubImplData calldata data) internal onlyInitializing {
         _implData = data;
     }
 

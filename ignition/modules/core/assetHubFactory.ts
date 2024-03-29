@@ -29,6 +29,7 @@ export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager +
   const tokenCollectModuleFactory = m.contract(Contracts.TokenCollectModuleFactory, []);
   const nftGatedModuleFactory = m.contract(Contracts.NftAssetGatedModuleFactory, []);
   const tokenAssetCreateModuleFactory = m.contract(Contracts.TokenAssetCreateModuleFactory, [])
+  const feeCollectModuleFactory = m.contract(Contracts.FeeCollectModuleFactory, [])
   const collectNFTFactory = m.contract(Contracts.CollectNFTFactory, [])
 
   m.call(assethubManager, "initialize", [
@@ -37,7 +38,8 @@ export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager +
       tokenCollectModuleFactory,
       nftGatedModuleFactory,
       tokenAssetCreateModuleFactory,
-      collectNFTFactory
+      collectNFTFactory,
+      feeCollectModuleFactory
     ]]);
   return { assethubManager };
 });

@@ -35,45 +35,39 @@ library AssetHubLogic {
                 data.assetCreateModuleData
             );
         }
-        if (data.collectModule != address(0)) {
-            ICollectModule(data.collectModule).initialModule(
-                publisher,
-                assetId,
-                data.collectModuleInitData
-            );
-        }
-        if (data.gatedModule != address(0)) {
-            IAssetGatedModule(data.gatedModule).initialModule(
-                publisher,
-                assetId,
-                data.gatedModuleInitData
-            );
-        }
         address collectNFT = _deployCollectNFT(collectNFTImpl, assetId, publisher);
         assets[assetId].collectNFT = collectNFT;
         emitAssetCreated(assetId, publisher, assets[assetId], data);
-        emitAssetUpdated(assetId, data);
+
+        DataTypes.AssetUpdateData memory updateData = DataTypes.AssetUpdateData({
+            collectModule: data.collectModule,
+            collectModuleInitData: data.collectModuleInitData,
+            gatedModule: data.gatedModule,
+            gatedModuleInitData: data.gatedModuleInitData,
+            contentURI: data.contentURI
+        });
+        UpdateAsset(assetId, publisher, updateData, assets);
     }
 
     function UpdateAsset(
         uint256 assetId,
         address publiser,
-        DataTypes.AssetUpdateData calldata data,
+        DataTypes.AssetUpdateData memory data,
         mapping(uint256 => DataTypes.Asset) storage assets
-    ) external {
+    ) public {
         bool isUpdate = false;
+        DataTypes.Asset storage asset = assets[assetId];
         if (
-            !Strings.equal(data.contentURI, '') &&
-            !Strings.equal(data.contentURI, assets[assetId].contentURI)
+            !Strings.equal(data.contentURI, '') && !Strings.equal(data.contentURI, asset.contentURI)
         ) {
             isUpdate = true;
-            assets[assetId].contentURI = data.contentURI;
+            asset.contentURI = data.contentURI;
             emit Events.MetadataUpdate(assetId);
         }
 
         if (data.collectModule != IGNORED_ADDRESS) {
             isUpdate = true;
-            assets[assetId].collectModule = data.collectModule;
+            asset.collectModule = data.collectModule;
             if (data.collectModule != address(0)) {
                 if (!Utils.checkSuportsInterface(data.collectModule, ICollectModuleInterfaceId)) {
                     revert Errors.InvalidCollectModule();
@@ -87,7 +81,7 @@ library AssetHubLogic {
         }
         if (data.gatedModule != IGNORED_ADDRESS) {
             isUpdate = true;
-            assets[assetId].gatedModule = data.gatedModule;
+            asset.gatedModule = data.gatedModule;
             if (data.gatedModule != address(0)) {
                 if (!Utils.checkSuportsInterface(data.gatedModule, IGatedModuleInterfaceId)) {
                     revert Errors.InvalidGatedModule();
@@ -100,7 +94,14 @@ library AssetHubLogic {
             }
         }
         if (isUpdate) {
-            emit Events.AssetUpdated(assetId, data);
+            emitAssetUpdated(
+                assetId,
+                asset.contentURI,
+                asset.collectModule,
+                data.collectModuleInitData,
+                asset.gatedModule,
+                data.gatedModuleInitData
+            );
         }
     }
 
@@ -193,14 +194,18 @@ library AssetHubLogic {
 
     function emitAssetUpdated(
         uint assetId,
-        DataTypes.AssetCreateData calldata createData
+        string memory ConentURI,
+        address collectModule,
+        bytes memory collectModuleInitData,
+        address gatedModule,
+        bytes memory gatedModuleInitData
     ) internal {
         DataTypes.AssetUpdateData memory data = DataTypes.AssetUpdateData({
-            collectModule: createData.collectModule,
-            collectModuleInitData: createData.collectModuleInitData,
-            gatedModule: createData.gatedModule,
-            gatedModuleInitData: createData.gatedModuleInitData,
-            contentURI: createData.contentURI
+            collectModule: collectModule,
+            collectModuleInitData: collectModuleInitData,
+            gatedModule: gatedModule,
+            gatedModuleInitData: gatedModuleInitData,
+            contentURI: ConentURI
         });
         emit Events.AssetUpdated(assetId, data);
     }

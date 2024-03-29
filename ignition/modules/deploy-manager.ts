@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { assethubManagerModule } from "./core/assetHubFactory";
+import { assethubManagerInitModule } from "./core/assetHubFactory";
 
 export default buildModule("DeployAssetHubManager", (m) => {
-  const { assethubManager } = m.useModule(assethubManagerModule)
+  const { assethubManager } = m.useModule(assethubManagerInitModule)
   return { assethubManager };
 })

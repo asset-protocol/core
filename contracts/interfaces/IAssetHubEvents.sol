@@ -8,9 +8,10 @@ import {IERC1967} from '@openzeppelin/contracts/interfaces/IERC1967.sol';
 
 interface IAssetHubEvents is IERC721, IERC4906, IERC1967 {
     event AssetCreated(
-        address indexed publisher,
         uint256 indexed assetId,
-        DataTypes.AssetCreateEventData data
+        address indexed publisher,
+        address collectNFT,
+        bytes createModuleData
     );
 
     event AssetUpdated(uint256 indexed assetId, DataTypes.AssetUpdateData data);

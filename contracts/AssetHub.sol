@@ -97,7 +97,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
     }
 
     function assetPublisher(uint256 assetId) external view returns (address) {
-        return ownerOf(assetId);
+        return _ownerOf(assetId);
     }
 
     function getCreateAssetModule() external view returns (address) {

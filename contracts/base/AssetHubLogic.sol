@@ -93,6 +93,7 @@ library AssetHubLogic {
                 );
             }
         }
+        console.log('publiser', publiser);
         if (isUpdate) {
             emitAssetUpdated(
                 assetId,

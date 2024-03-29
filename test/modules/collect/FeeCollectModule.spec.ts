@@ -76,4 +76,24 @@ describe("Collect Asset with fee collect module", async () => {
       .to.changeEtherBalance(await deployer.getAddress(), -collectFree)
     expect(await ethers.provider.getBalance(user3Address)).to.be.equal(collectFree)
   })
+
+  it("should collect an asset with enough fee after updated asset", async () => {
+    const initData = AbiCoder.defaultAbiCoder().encode(
+      ["address", "uint256"],
+      [ZeroAddress, 5]
+    )
+    await expect(assetHub.update(assetId, {
+      contentURI: "",
+      collectModule: await feeCollectModule.getAddress(),
+      collectModuleInitData: initData,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: "0x",
+    })).to.not.be.reverted;
+    const user3Address = await user3.getAddress();
+    await setBalance(userAddress, 0);
+    expect(await ethers.provider.getBalance(userAddress)).to.be.equal(0)
+    await expect(assetHub.connect(user3).collect(assetId, "0x", { value: BigInt(5) }))
+      .to.changeEtherBalance(user3Address, -5)
+    expect(await ethers.provider.getBalance(userAddress)).to.be.equal(5)
+  })
 });

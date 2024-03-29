@@ -2,7 +2,7 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-help
 import { AssetHub, TokenCollectModule, TokenCollectModule__factory } from "../../../typechain-types"
 import { DeployCtx, deployContracts, deployer, user, user3, userAddress } from "../../setup.spec"
 import { expect } from "chai"
-import { AbiCoder } from "ethers"
+import { AbiCoder, ZeroAddress } from "ethers"
 import { ZERO_DATA } from "../../contants"
 import { ERRORS } from "../../helpers/errors"
 import { createAsset, createAssetStatic } from "../../helpers/asset"
@@ -101,5 +101,33 @@ describe("Collect Asset with token collect module", async () => {
         bt + 1
       )
   })
+
+  it("should collect a asset with token collect module after update", async function () {
+    const use3hub = assetHub.connect(user3)
+    const user3Address = await user3.getAddress()
+    const tokenAddress = await tokenCollectModule.getAddress()
+
+    const initData = AbiCoder.defaultAbiCoder().encode(
+      ["address", "address", "uint256"],
+      [await cts.tokenImpl.getAddress(), userAddress, 20]
+    )
+
+    await expect(assetHub.update(assetId, {
+      contentURI: "",
+      collectModule: tokenAddress,
+      collectModuleInitData: initData,
+      gatedModule: ZeroAddress,
+      gatedModuleInitData: "0x",
+    })).to.not.be.reverted
+
+    await expect(cts.tokenImpl.mint(user3Address, 20))
+      .to.not.be.reverted
+    await expect(cts.tokenImpl.connect(user3).approve(tokenAddress, 20))
+      .to.not.be.reverted
+    await expect(use3hub.collect(assetId, ZERO_DATA))
+      .to.not.be.reverted;
+  })
 })
+
+
 

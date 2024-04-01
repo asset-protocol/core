@@ -43,7 +43,6 @@ export async function deployContracts(): Promise<DeployCtx> {
   expect(event).to.not.be.undefined
   const eventdata = AssetHubManager__factory.createInterface().decodeEventLog("AssetHubDeployed", event!.data)
   const assetHub = await ethers.getContractAt("AssetHub", hubAddress, deployer);
-  console.log("tokenCollectModule", eventdata[3][3])
   return {
     assetHub,
     tokenImpl,

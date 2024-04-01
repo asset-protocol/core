@@ -3,7 +3,7 @@ import { Contracts } from "./core/contracts";
 
 export default buildModule("UpgradeAssetHub", (m) => {
 
-  const assetHub = m.contractAt(Contracts.AssetHub, "0xC20f603Bc1D0B558CA3a0880EEa3B733FC15b85d",{
+  const assetHub = m.contractAt(Contracts.AssetHub, "0xC2876F1d401aDe7041774AE81b3b272476e43eC0",{
     id: "assetHubProxy"
   });
 

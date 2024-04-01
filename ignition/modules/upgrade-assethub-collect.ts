@@ -2,7 +2,7 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./core/contracts";
 
 export default buildModule("UpgradeTokenCollectModule", (m) => {
-  const tokenCollectModule = m.contractAt(Contracts.TokenCollectModule, "0x7E08f2E743d0Bd9B19A588f0C7B5EE32d24F51d0", {
+  const tokenCollectModule = m.contractAt(Contracts.TokenCollectModule, "0x214C6fA6268713ED017302C0CB7011B5e24b86ff", {
     id: "tokenCollectModule"
   });
   const tokenCollectModule_next = m.contract(Contracts.TokenCollectModule, [], {

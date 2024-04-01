@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import {CollectModuleBaseUpgradeable} from './base/CollectModuleBaseUpgradeable.sol';
 import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
 import {IAssetHub} from '../../interfaces/IAssetHub.sol';
-import {console} from 'hardhat/console.sol';
 
 struct FeeCollectConfig {
     address payable recipient;
@@ -43,12 +42,10 @@ contract FeeCollectModule is UpgradeableBase, CollectModuleBaseUpgradeable {
         FeeCollectConfig memory config = _configs[assetId];
         if (config.amount == 0) return '';
         address payable recipient = config.recipient;
-        console.log('recipient', config.recipient);
         if (recipient == address(0)) {
             recipient = payable(IAssetHub(HUB).assetPublisher(assetId));
         }
-        console.log('recipient', recipient);
-        console.log('amount', config.amount);
+        require(recipient != address(0),"recipient should not be zero");
         recipient.transfer(config.amount);
         return '';
     }

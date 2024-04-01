@@ -68,7 +68,7 @@ contract TokenCollectModule is UpgradeableBase, CollectModuleBaseUpgradeable {
         if (recipient == address(0)) {
             revert InvalidRecipient();
         }
-        IERC20(config.currency).transferFrom(collector, config.recipient, config.amount);
+        IERC20(config.currency).transferFrom(collector, recipient, config.amount);
         return '';
     }
 

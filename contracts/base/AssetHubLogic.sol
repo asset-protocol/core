@@ -11,7 +11,6 @@ import {ICollectModule} from '../interfaces/ICollectModule.sol';
 import {ICreateAssetModule} from '../interfaces/ICreateAssetModule.sol';
 import {IAssetGatedModule} from '../interfaces/IAssetGatedModule.sol';
 import {Errors} from '../libs/Errors.sol';
-import {console} from 'hardhat/console.sol';
 
 library AssetHubLogic {
     address constant IGNORED_ADDRESS = address(1);
@@ -93,7 +92,6 @@ library AssetHubLogic {
                 );
             }
         }
-        console.log('publiser', publiser);
         if (isUpdate) {
             emitAssetUpdated(
                 assetId,

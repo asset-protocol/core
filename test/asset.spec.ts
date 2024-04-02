@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { DeployCtx, accounts, deployContracts, deployer, deployerAddress, hubManager, user, userAddress } from "./setup.spec";
 import { AssetHub, AssetHub__factory } from "../typechain-types";
 import { AbiCoder, ZeroAddress } from "ethers";
-import { ZERO_DATA } from "./contants";
+import { IGNORE_ADDRESS, ZERO_DATA } from "./contants";
 import { createAsset, createAssetStatic } from "./helpers/asset";
 
 const CURRENT_ASSETHUB_VERSION = "0.1.0";
@@ -86,7 +86,20 @@ describe("Create Asset", async () => {
       contentURI: "https://www.baidu.com",
       collectModule: cts.tokenCollectModule,
       collectModuleInitData: initData,
-      gatedModule: ZeroAddress,
+      gatedModule: IGNORE_ADDRESS,
+      gatedModuleInitData: ZERO_DATA,
+    })).to.not.be.reverted;
+  })
+
+  it("should update asset without update", async function () {
+    assetHub = cts.assetHub.connect(user)
+    const tokenId = await createAssetStatic(assetHub, ZeroAddress, ZERO_DATA);
+    await expect(createAsset(assetHub, ZeroAddress, ZERO_DATA)).to.not.be.reverted;
+    await expect(assetHub.update(tokenId, {
+      contentURI: "",
+      collectModule: IGNORE_ADDRESS,
+      collectModuleInitData: ZERO_DATA,
+      gatedModule: IGNORE_ADDRESS,
       gatedModuleInitData: ZERO_DATA,
     })).to.not.be.reverted;
   })

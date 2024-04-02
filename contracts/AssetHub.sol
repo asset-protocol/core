@@ -79,7 +79,9 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         DataTypes.AssetUpdateData calldata data
     ) external whenNotPaused {
         _requireAssetPublisher(assetId, _msgSender());
-        if (data.collectModule != address(0)) {
+        if (
+            data.collectModule != address(0) && data.collectModule != AssetHubLogic.IGNORED_ADDRESS
+        ) {
             if (!_collectModuleWhitelisted[data.collectModule]) {
                 revert Errors.CollectModuleNotWhitelisted();
             }

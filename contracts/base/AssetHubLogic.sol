@@ -13,9 +13,9 @@ import {IAssetGatedModule} from '../interfaces/IAssetGatedModule.sol';
 import {Errors} from '../libs/Errors.sol';
 
 library AssetHubLogic {
-    address constant IGNORED_ADDRESS = address(1);
-    bytes4 constant ICollectModuleInterfaceId = type(ICollectModule).interfaceId;
-    bytes4 constant IGatedModuleInterfaceId = type(IAssetGatedModule).interfaceId;
+    address public constant IGNORED_ADDRESS = address(1);
+    bytes4 public constant ICollectModuleInterfaceId = type(ICollectModule).interfaceId;
+    bytes4 public constant IGatedModuleInterfaceId = type(IAssetGatedModule).interfaceId;
 
     error InvalidCollectNFTImpl();
 
@@ -96,9 +96,9 @@ library AssetHubLogic {
             emitAssetUpdated(
                 assetId,
                 asset.contentURI,
-                asset.collectModule,
+                data.collectModule,
                 data.collectModuleInitData,
-                asset.gatedModule,
+                data.gatedModule,
                 data.gatedModuleInitData
             );
         }

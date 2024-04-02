@@ -80,8 +80,14 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         if (data.tokenCollectModuleFactory != address(0)) {
             _implData.tokenCollectModuleFactory = data.tokenCollectModuleFactory;
         }
+        if (data.feeCollectModuleFactory != address(0)) {
+            _implData.feeCollectModuleFactory = data.feeCollectModuleFactory;
+        }
         if (data.nftGatedModuleFactory != address(0)) {
             _implData.nftGatedModuleFactory = data.nftGatedModuleFactory;
+        }
+        if (data.collectNFTFactory != address(0)) {
+            _implData.collectNFTFactory = data.collectNFTFactory;
         }
         if (data.tokenAssetCreateModuleFactory != address(0)) {
             _implData.tokenAssetCreateModuleFactory = data.tokenAssetCreateModuleFactory;

@@ -6,6 +6,7 @@ import {UpgradeableBase} from '../upgradeability/UpgradeableBase.sol';
 import {WhitelistBase} from '../base/WhitlistBase.sol';
 import {IModuleFactory, IAssetHubFactory} from './IFactory.sol';
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
+import {IAssetHubManager, AssetHubDeployData} from '../interfaces/IAssetHubManager.sol';
 
 struct AssetHubInfo {
     address collectNFT;
@@ -13,13 +14,6 @@ struct AssetHubInfo {
     address assetCreateModule;
     address tokenCollectModule;
     address feeCollectModule;
-}
-
-struct AssetHubDeployData {
-    address admin;
-    string name;
-    bool collectNft;
-    address assetCreateModule;
 }
 
 struct AssetHubImplData {
@@ -31,20 +25,26 @@ struct AssetHubImplData {
     address feeCollectModuleFactory;
 }
 
-contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
+contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase, IAssetHubManager {
     AssetHubImplData internal _implData;
     mapping(string => address) private _namedHubs;
     mapping(address => AssetHubInfo) private _assetHubs;
+    address private _globalModule;
 
+    event ManagerInitialized(address globalModule);
+    event GlobalModuleChanged(address globalModule);
     event AssetHubDeployed(address indexed admin, string name, address assetHub, AssetHubInfo data);
 
     error NameHubExisted(string hubName);
     error AssetHubNotExisted();
 
-    function initialize(AssetHubImplData calldata data) external initializer {
+    function initialize(
+        AssetHubImplData calldata data,
+        address globalModuleFactory
+    ) external initializer {
         __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
-        __AssetHubManager_init(data);
+        __AssetHubManager_init(data, globalModuleFactory);
         _setWhitelist(_msgSender(), true);
     }
 
@@ -52,8 +52,23 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         return '1.0.0';
     }
 
-    function __AssetHubManager_init(AssetHubImplData calldata data) internal onlyInitializing {
+    function globalModule() public view virtual returns (address) {
+        return _globalModule;
+    }
+
+    function setGolbalModule(address gm) external onlyOwner {
+        _globalModule = gm;
+        emit GlobalModuleChanged(gm);
+    }
+
+    function __AssetHubManager_init(
+        AssetHubImplData calldata data,
+        address globalModuleFactory
+    ) internal onlyInitializing {
         _implData = data;
+        bytes memory initdata;
+        _globalModule = IAssetHubFactory(globalModuleFactory).createUUPSUpgradeable(initdata);
+        emit ManagerInitialized(_globalModule);
     }
 
     function setWhitelist(address account, bool whitelist) external onlyOwner {
@@ -171,7 +186,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase {
         collectModule[1] = info.feeCollectModule;
         IAssetHub(assetHub).initialize(
             data.name,
-            data.name,
+            address(this),
             admin,
             info.collectNFT,
             data.assetCreateModule,

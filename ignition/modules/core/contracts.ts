@@ -21,4 +21,7 @@ export enum Contracts {
   NftAssetGatedModuleFactory = "NftAssetGatedModuleFactory",
   TokenAssetCreateModuleFactory = "TokenAssetCreateModuleFactory",
   CollectNFTFactory = "CollectNFTFactory",
+
+  FeeGlobalModule = "TokenGlobalModule",
+  FeeGlobalModuleFactory = "TokenGlobalModuleFactory",
 }

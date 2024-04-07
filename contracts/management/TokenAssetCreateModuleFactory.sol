@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {IModuleFactory} from './IFactory.sol';
-import {TokenAssetCreateModule} from '../modules/asset/TokenAssetCreateModule.sol';
+import {TokenAssetCreateModule} from '../modules/create/TokenAssetCreateModule.sol';
 
 contract TokenAssetCreateModuleFactory is IModuleFactory {
     function createUUPSUpgradeable(

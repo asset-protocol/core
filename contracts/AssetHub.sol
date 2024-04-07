@@ -18,21 +18,23 @@ import {DataTypes} from './libs/DataTypes.sol';
 contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHub {
     address private _collectNFTImpl;
     address private _createAssetModule;
+    address private _manager;
     mapping(address => bool) private _collectModuleWhitelisted;
 
     function initialize(
         string memory name,
-        string memory symbol,
+        address manager,
         address admin,
         address collectNFT,
         address createAssetModule,
         address[] memory whitelistedCollectModules
     ) external initializer {
-        __AssetNFTBase_init(name, symbol);
+        __AssetNFTBase_init(name, name);
         __Ownable_init(admin);
         __UUPSUpgradeable_init();
         _collectNFTImpl = collectNFT;
         _createAssetModule = createAssetModule;
+        _manager = manager;
         for (uint i = 0; i < whitelistedCollectModules.length; i++) {
             if (whitelistedCollectModules[i] != address(0)) {
                 _collectModuleWhitelist(whitelistedCollectModules[i], true);
@@ -50,6 +52,10 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         return owner();
     }
 
+    function globalModule() external returns (address) {
+        return AssetHubLogic.getGlobalModule(_manager);
+    }
+
     function create(
         DataTypes.AssetCreateData calldata data
     ) external override(IAssetHub) whenNotPaused returns (uint256) {
@@ -64,6 +70,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         }
         uint256 res = _createAsset(pub, data);
         AssetHubLogic.handleAssetCreate(
+            _manager,
             pub,
             res,
             _createAssetModule,
@@ -86,7 +93,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
                 revert Errors.CollectModuleNotWhitelisted();
             }
         }
-        AssetHubLogic.UpdateAsset(assetId, _ownerOf(assetId), data, _assets);
+        AssetHubLogic.UpdateAsset(_manager, assetId, _ownerOf(assetId), data, _assets);
     }
 
     function setCreateAssetModule(address assetModule) external onlyOwner {
@@ -138,6 +145,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         address collector = _msgSender();
         return
             AssetHubLogic.collect(
+                _manager,
                 assetId,
                 _ownerOf(assetId),
                 collector,

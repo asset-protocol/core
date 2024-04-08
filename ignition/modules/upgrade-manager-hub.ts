@@ -1,5 +1,4 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { assethubManagerModule } from "./core/assetHubFactory";
 import { Contracts } from "./core/contracts";
 import { ZeroAddress } from "ethers";
 import { ASSETHUB_MANAGER } from "./consts";

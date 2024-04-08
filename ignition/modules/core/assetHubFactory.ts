@@ -31,7 +31,7 @@ export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager +
   const tokenAssetCreateModuleFactory = m.contract(Contracts.TokenAssetCreateModuleFactory, [])
   const feeCollectModuleFactory = m.contract(Contracts.FeeCollectModuleFactory, [])
   const collectNFTFactory = m.contract(Contracts.CollectNFTFactory, []);
-  const feeTokenGlobalModuleFactory = m.contract(Contracts.FeeGlobalModuleFactory, []);
+  const feeTokenGlobalModuleFactory = m.contract(Contracts.TokenGlobalModuleFactory, []);
 
   m.call(assethubManager, "initialize", [
     [

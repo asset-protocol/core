@@ -1,12 +1,14 @@
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { deployer, hubManager } from "../setup.spec";
 import { ZeroAddress } from "ethers";
 import { AssetHubManager__factory, AssetHub__factory } from "../../typechain-types";
-import { ethers } from "hardhat";
 
 const HUB_NAME = "TEST_HUB"
 
 describe("AssetHubFactory", async function () {
+  before(async () => {
+    await expect(hubManager.setHubCreatorNFT(ZeroAddress)).to.be.not.reverted;
+  })
   it("should deploy a new assethub", async function () {
     const args = {
       admin: await deployer.getAddress(),
@@ -14,7 +16,7 @@ describe("AssetHubFactory", async function () {
       collectNft: true,
       assetCreateModule: ZeroAddress,
     }
-    await expect(hubManager.deploy(args)).to.not.be.reverted;
+    await expect(hubManager.deploy(args)).to.be.not.reverted;
   });
 
   it("should not deploy a existed name hub", async function () {

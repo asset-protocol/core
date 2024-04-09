@@ -30,12 +30,22 @@ struct HubTokenFeeConfig {
 }
 
 contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable {
-    address private _manager;
-    address private _token;
-    address _recipient;
-    mapping(address => TokenFeeConfigData) _hubConfigs;
-
     using SafeERC20 for IERC20;
+    struct TokenGlobalModuleStorage {
+        address _manager;
+        address _token;
+        address _recipient;
+        mapping(address => TokenFeeConfigData) _hubConfigs;
+    }
+    // keccak256(abi.encode(uint256(keccak256('globalmodule.storage.token')) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant TokenStorageLocation =
+        0xcf77b6f9147e7c76fb90677c5145a761b25198608dedc1ade257465d1645b800;
+
+    function _getTokenStorage() private pure returns (TokenGlobalModuleStorage storage $) {
+        assembly {
+            $.slot := TokenStorageLocation
+        }
+    }
 
     function initialize(
         address manager,
@@ -44,14 +54,15 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
     ) external initializer {
         __UUPSUpgradeable_init();
         __Ownable_init(_msgSender());
-        _hubConfigs[address(0)] = TokenFeeConfigData({
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._hubConfigs[address(0)] = TokenFeeConfigData({
             exist: true,
             createFee: feeConfig.createFee,
             updateFee: feeConfig.updateFee,
             collectFee: feeConfig.collectFee
         });
-        _token = token;
-        _manager = manager;
+        $._token = token;
+        $._manager = manager;
     }
 
     function version() external view virtual override returns (string memory) {
@@ -63,10 +74,11 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
     }
 
     function config(address hub) public view returns (HubTokenFeeConfig memory) {
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
         TokenFeeConfigData memory c = _getConfig(hub);
         return
             HubTokenFeeConfig({
-                token: _token,
+                token: $._token,
                 createFee: c.createFee,
                 updateFee: c.updateFee,
                 collectFee: c.collectFee
@@ -75,12 +87,14 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
 
     function setToken(address token) external {
         _requireAdmin();
-        _token = token;
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._token = token;
     }
 
     function setDefaultConfig(TokenFeeConfig memory feeConfig) external {
         _requireAdmin();
-        _hubConfigs[address(0)] = TokenFeeConfigData({
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._hubConfigs[address(0)] = TokenFeeConfigData({
             exist: true,
             createFee: feeConfig.createFee,
             updateFee: feeConfig.updateFee,
@@ -91,7 +105,8 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
     function setHubConfig(address hub, TokenFeeConfig calldata feeConfig) external {
         _requireAdmin();
         _checkHub(hub);
-        _hubConfigs[hub] = TokenFeeConfigData({
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._hubConfigs[hub] = TokenFeeConfigData({
             exist: true,
             collectFee: feeConfig.collectFee,
             createFee: feeConfig.createFee,
@@ -102,28 +117,32 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
     function setCollectFee(address hub, uint256 collectFee) external {
         _requireAdmin();
         _checkHub(hub);
-        _hubConfigs[hub].exist = true;
-        _hubConfigs[hub].collectFee = collectFee;
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._hubConfigs[hub].exist = true;
+        $._hubConfigs[hub].collectFee = collectFee;
     }
 
     function setCreateFee(address hub, uint256 createFee) external {
         _requireAdmin();
         _checkHub(hub);
-        _hubConfigs[hub].exist = true;
-        _hubConfigs[hub].createFee = createFee;
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._hubConfigs[hub].exist = true;
+        $._hubConfigs[hub].createFee = createFee;
     }
 
     function setUpdateFee(address hub, uint256 updateFee) external {
         _requireAdmin();
         _checkHub(hub);
-        _hubConfigs[hub].exist = true;
-        _hubConfigs[hub].updateFee = updateFee;
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._hubConfigs[hub].exist = true;
+        $._hubConfigs[hub].updateFee = updateFee;
     }
 
     function setRecipient(address recipient) external {
         _requireAdmin();
         require(recipient != address(0), 'recipient should not be zero');
-        _recipient = recipient;
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        $._recipient = recipient;
     }
 
     function onCreateAsset(
@@ -134,9 +153,10 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
         address hub = msg.sender;
         _checkHub(hub);
         TokenFeeConfigData memory c = _getConfig(hub);
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
         if (c.createFee > 0) {
-            require(_recipient != address(0), 'recipient should not be zero');
-            IERC20(_token).transferFrom(publisher, _recipient, c.createFee);
+            require($._recipient != address(0), 'recipient should not be zero');
+            IERC20($._token).transferFrom(publisher, $._recipient, c.createFee);
         }
     }
 
@@ -150,8 +170,9 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
         _checkHub(hub);
         TokenFeeConfigData memory c = _getConfig(hub);
         if (c.collectFee > 0) {
-            require(_recipient != address(0), 'recipient should not be zero');
-            IERC20(_token).transferFrom(collector, _recipient, c.collectFee);
+            TokenGlobalModuleStorage storage $ = _getTokenStorage();
+            require($._recipient != address(0), 'recipient should not be zero');
+            IERC20($._token).transferFrom(collector, $._recipient, c.collectFee);
         }
     }
 
@@ -159,23 +180,26 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
         address hub = msg.sender;
         _checkHub(hub);
         TokenFeeConfigData memory c = _getConfig(hub);
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
         if (c.updateFee > 0) {
-            require(_recipient != address(0), 'recipient should not be zero');
-            IERC20(_token).transferFrom(publisher, _recipient, c.updateFee);
+            require($._recipient != address(0), 'recipient should not be zero');
+            IERC20($._token).transferFrom(publisher, $._recipient, c.updateFee);
         }
     }
 
     function _getConfig(address hub) internal view returns (TokenFeeConfigData memory) {
-        TokenFeeConfigData memory c = _hubConfigs[hub];
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        TokenFeeConfigData memory c = $._hubConfigs[hub];
         if (!c.exist) {
-            c = _hubConfigs[address(0)];
+            c = $._hubConfigs[address(0)];
         }
         require(c.exist, 'default fee config not set');
         return c;
     }
 
     function _requireAdmin() internal view virtual {
-        require(IOwnable(_manager).owner() == _msgSender(), 'not owner');
+        TokenGlobalModuleStorage storage $ = _getTokenStorage();
+        require(IOwnable($._manager).owner() == _msgSender(), 'not owner');
     }
 
     function _checkHub(address hub) internal pure {

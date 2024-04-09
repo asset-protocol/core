@@ -97,9 +97,16 @@ before(async function () {
   }, await tokenGlobalModuleFactory.getAddress());
   const res = await tx.wait();
   const instance = AssetHubManager__factory.createInterface();
-  const eventLog = res?.logs.find(l => l.topics[0] === instance.getEvent("ManagerInitialized").topicHash);
-  const log = instance.decodeEventLog("ManagerInitialized", eventLog!.data);
+  const eventLog = res?.logs.find(l => l.topics[0] === instance.getEvent("GlobalModuleChanged").topicHash);
+  const log = instance.decodeEventLog("GlobalModuleChanged", eventLog!.data);
   tokenGlobalModule = TokenGlobalModule__factory.connect(log[0], deployer);
+  await expect(tokenGlobalModule.setRecipient(deployerAddress)).to.not.be.reverted;
+  await expect(tokenGlobalModule.setToken(await testToken.getAddress())).to.not.be.reverted;
+  await expect(tokenGlobalModule.setDefaultConfig({
+    collectFee: 0,
+    updateFee: 0,
+    createFee: 0
+  })).to.not.be.reverted;
 });
 
 

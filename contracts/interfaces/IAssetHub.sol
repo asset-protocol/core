@@ -6,7 +6,7 @@ import {DataTypes} from '../libs/DataTypes.sol';
 interface IAssetHub {
     function initialize(
         string memory name,
-        address manager,
+        string memory symbol,
         address admin,
         address collectNFT,
         address createAssetModule,

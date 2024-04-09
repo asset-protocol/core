@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {IModuleFactory} from './IFactory.sol';
 import {UpgradeableProxy} from '../upgradeability/UpgradeableProxy.sol';
-import {NftAssetGatedModule} from '../modules/gated/NftAssetGatedModule.sol';
+import {NftAssetGatedModule} from '../modules/asset/NftAssetGatedModule.sol';
 
 contract NftAssetGatedModuleFactory is IModuleFactory {
     function createUUPSUpgradeable(

@@ -4,7 +4,7 @@
     "test": "hardhat test --network hardhat --verbose",
     "gen:go": "hardhat export-abi --no-compile && abigen --abi=abi/AssetHub.json --pkg=assethub --out=asset-go/assethub.go",
     "deploy:test": "hardhat ignition deploy ignition/modules/deploy-manager.ts --network polygonMumbai --verify",
-    "newhub": "hardhat ignition deploy ignition/modules/deploy-newhub.ts --network polygonMumbai"
+    "newhub": "hardhat ignition deploy ignition/modules/deploy-newhub.ts --network polygonMumbai --verify"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "2.0.0",

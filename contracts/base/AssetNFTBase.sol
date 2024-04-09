@@ -64,6 +64,23 @@ contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
         return _assets[tokenId].contentURI;
     }
 
+    function setTokenURI(uint256 assetId, string calldata contentURI) external {
+        _checkAssetId(assetId);
+        if (_ownerOf(assetId) != _msgSender()) {
+            revert Errors.NotAssetPublisher();
+        }
+        _assets[assetId].contentURI = contentURI;
+        emit MetadataUpdate(assetId);
+        DataTypes.AssetUpdateData memory data = DataTypes.AssetUpdateData({
+            contentURI: contentURI,
+            collectModule: address(0),
+            collectModuleInitData: bytes(''),
+            gatedModule: address(0),
+            gatedModuleInitData: bytes('')
+        });
+        emit Events.AssetUpdated(assetId, data);
+    }
+
     function _checkAssetId(uint256 assetId) internal view {
         if (_ownerOf(assetId) == address(0)) revert Errors.AssetDoesNotExist();
     }

@@ -10,8 +10,6 @@ import {ICollectNFT} from '../interfaces/ICollectNFT.sol';
 import {ICollectModule} from '../interfaces/ICollectModule.sol';
 import {ICreateAssetModule} from '../interfaces/ICreateAssetModule.sol';
 import {IAssetGatedModule} from '../interfaces/IAssetGatedModule.sol';
-import {IAssetHubManager} from '../interfaces/IAssetHubManager.sol';
-import {IGlobalModule} from '../interfaces/IGlobalModule.sol';
 import {Errors} from '../libs/Errors.sol';
 
 library AssetHubLogic {
@@ -22,7 +20,6 @@ library AssetHubLogic {
     error InvalidCollectNFTImpl();
 
     function handleAssetCreate(
-        address manager,
         address publisher,
         uint256 assetId,
         address createAssetModule,
@@ -30,10 +27,6 @@ library AssetHubLogic {
         DataTypes.AssetCreateData calldata data,
         mapping(uint256 => DataTypes.Asset) storage assets
     ) external {
-        address globalModule = IAssetHubManager(manager).globalModule();
-        if (globalModule != address(0)) {
-            IGlobalModule(globalModule).onCreateAsset(publisher, assetId, data);
-        }
         if (createAssetModule != address(0)) {
             ICreateAssetModule(createAssetModule).processCreate(
                 publisher,
@@ -52,31 +45,17 @@ library AssetHubLogic {
             gatedModuleInitData: data.gatedModuleInitData,
             contentURI: data.contentURI
         });
-        _updateAsset(assetId, publisher, updateData, assets[assetId]);
+        UpdateAsset(assetId, publisher, updateData, assets);
     }
 
     function UpdateAsset(
-        address manager,
         uint256 assetId,
-        address publisher,
+        address publiser,
         DataTypes.AssetUpdateData memory data,
         mapping(uint256 => DataTypes.Asset) storage assets
     ) public {
-        DataTypes.Asset storage asset = assets[assetId];
-        address globalModule = IAssetHubManager(manager).globalModule();
-        if (globalModule != address(0)) {
-            IGlobalModule(globalModule).onUpdate(publisher, assetId);
-        }
-        _updateAsset(assetId, publisher, data, asset);
-    }
-
-    function _updateAsset(
-        uint256 assetId,
-        address publisher,
-        DataTypes.AssetUpdateData memory data,
-        DataTypes.Asset storage asset
-    ) public {
         bool isUpdate = false;
+        DataTypes.Asset storage asset = assets[assetId];
         if (
             !Strings.equal(data.contentURI, '') && !Strings.equal(data.contentURI, asset.contentURI)
         ) {
@@ -93,7 +72,7 @@ library AssetHubLogic {
                     revert Errors.InvalidCollectModule();
                 }
                 ICollectModule(data.collectModule).initialModule(
-                    publisher,
+                    publiser,
                     assetId,
                     data.collectModuleInitData
                 );
@@ -107,7 +86,7 @@ library AssetHubLogic {
                     revert Errors.InvalidGatedModule();
                 }
                 IAssetGatedModule(data.gatedModule).initialModule(
-                    publisher,
+                    publiser,
                     assetId,
                     data.gatedModuleInitData
                 );
@@ -126,7 +105,6 @@ library AssetHubLogic {
     }
 
     function collect(
-        address manager,
         uint256 assetId,
         address publiser,
         address collector,
@@ -135,11 +113,6 @@ library AssetHubLogic {
     ) external returns (uint256) {
         address collectNFT = assets[assetId].collectNFT;
         address collectModule = assets[assetId].collectModule;
-
-        address globalModule = IAssetHubManager(manager).globalModule();
-        if (globalModule != address(0)) {
-            IGlobalModule(globalModule).onCollect(assetId, publiser, collector, collectModuleData);
-        }
 
         if (collectModule != address(0)) {
             ICollectModule(collectModule).processCollect{value: msg.value}(
@@ -219,7 +192,7 @@ library AssetHubLogic {
     }
 
     function emitAssetUpdated(
-        uint256 assetId,
+        uint assetId,
         string memory ConentURI,
         address collectModule,
         bytes memory collectModuleInitData,
@@ -234,9 +207,5 @@ library AssetHubLogic {
             contentURI: ConentURI
         });
         emit Events.AssetUpdated(assetId, data);
-    }
-
-    function getGlobalModule(address manager) internal returns (address) {
-        return IAssetHubManager(manager).globalModule();
     }
 }

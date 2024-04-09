@@ -9,16 +9,6 @@ describe("Test collect asset with token global module", () => {
   let cts: DeployCtx = {} as any
   let assetId: bigint;
 
-  before(async () => {
-    await expect(tokenGlobalModule.setToken(await testToken.getAddress())).to.not.be.reverted;
-    await expect(tokenGlobalModule.setRecipient(deployerAddress)).to.not.be.reverted;
-    await expect(tokenGlobalModule.setDefaultConfig({
-      collectFee: 0,
-      updateFee: 0,
-      createFee: 0
-    })).to.not.be.reverted;
-  });
-
   beforeEach(async function () {
     cts = await loadFixture(deployContracts);
     const assetHub = cts.assetHub.connect(user);
@@ -65,11 +55,6 @@ describe("Test collect asset with token global module", () => {
 
 describe("Test create asset with token global module", () => {
   let cts: DeployCtx = {} as any
-
-  before(async () => {
-    await expect(tokenGlobalModule.setToken(await testToken.getAddress())).to.not.be.reverted;
-    await expect(tokenGlobalModule.setRecipient(deployerAddress)).to.not.be.reverted;
-  });
 
   beforeEach(async function () {
     cts = await loadFixture(deployContracts);

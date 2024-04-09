@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {UpgradeableBase} from '../upgradeability/UpgradeableBase.sol';
-import {WhitelistBase} from '../base/WhitlistBase.sol';
 import {IModuleFactory, IAssetHubFactory} from './IFactory.sol';
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
 import {IAssetHubManager, AssetHubDeployData} from '../interfaces/IAssetHubManager.sol';
@@ -25,18 +25,37 @@ struct AssetHubImplData {
     address feeCollectModuleFactory;
 }
 
-contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase, IAssetHubManager {
-    AssetHubImplData internal _implData;
-    mapping(string => address) private _namedHubs;
-    mapping(address => AssetHubInfo) private _assetHubs;
-    address private _globalModule;
+contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManager {
+    struct AssetHubStorage {
+        AssetHubImplData implData;
+        mapping(string => address) namedHubs;
+        mapping(address => AssetHubInfo) assetHubs;
+    }
 
-    event ManagerInitialized(address globalModule);
+    struct GlobalModuleStorage {
+        address _module;
+    }
+
+    struct HubCreatorNFTStorage {
+        address _hubCreatorNFT;
+    }
+    // keccak256(abi.encode(uint256(keccak256('manager.storage.hub')) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant HubStorageLocation =
+        0xcf77b6f9147e7c76fb90677c5145a761b25198608dedc1ade257465d1645b800;
+    //keccak256(abi.encode(uint256(keccak256('manager.storage.globalModule')) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant GlobalModuleLocation =
+        0x3b1ecc23ed53ca9af47d8e68d76e1cf236cadced5a6e7c8a314ea4fa37a53800;
+    //keccak256(abi.encode(uint256(keccak256('manager.storage.hubcreatorNFT')) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant HubCreatorNFTLocation =
+        0xffa88101cd370f699719567569be368264e840ee1b9016e9d5a1dcdab6d1d500;
+
     event GlobalModuleChanged(address globalModule);
     event AssetHubDeployed(address indexed admin, string name, address assetHub, AssetHubInfo data);
+    event HubCreatorNFTChanged(address creatorNFT);
 
     error NameHubExisted(string hubName);
     error AssetHubNotExisted();
+    error NotCreator(address);
 
     function initialize(
         AssetHubImplData calldata data,
@@ -45,7 +64,35 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase, 
         __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
         __AssetHubManager_init(data, globalModuleFactory);
-        _setWhitelist(_msgSender(), true);
+    }
+
+    function _getHubStorage() private pure returns (AssetHubStorage storage $) {
+        assembly {
+            $.slot := HubStorageLocation
+        }
+    }
+
+    function _getGlobalModule() private pure returns (GlobalModuleStorage storage $) {
+        assembly {
+            $.slot := GlobalModuleLocation
+        }
+    }
+
+    function _getHubCreatorNFT() private pure returns (HubCreatorNFTStorage storage $) {
+        assembly {
+            $.slot := HubCreatorNFTLocation
+        }
+    }
+
+    function __AssetHubManager_init(
+        AssetHubImplData calldata data,
+        address globalModuleFactory
+    ) internal onlyInitializing {
+        AssetHubStorage storage $ = _getHubStorage();
+        $.implData = data;
+        bytes memory initdata;
+        address gm = IAssetHubFactory(globalModuleFactory).createUUPSUpgradeable(initdata);
+        setGolbalModule(gm);
     }
 
     function version() external view virtual override returns (string memory) {
@@ -53,69 +100,82 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase, 
     }
 
     function globalModule() public view virtual returns (address) {
-        return _globalModule;
+        return _getGlobalModule()._module;
     }
 
-    function setGolbalModule(address gm) external onlyOwner {
-        _globalModule = gm;
+    function setGolbalModule(address gm) public onlyOwner {
+        GlobalModuleStorage storage $ = _getGlobalModule();
+        $._module = gm;
         emit GlobalModuleChanged(gm);
     }
 
-    function __AssetHubManager_init(
-        AssetHubImplData calldata data,
-        address globalModuleFactory
-    ) internal onlyInitializing {
-        _implData = data;
-        bytes memory initdata;
-        _globalModule = IAssetHubFactory(globalModuleFactory).createUUPSUpgradeable(initdata);
-        emit ManagerInitialized(_globalModule);
+    modifier onlyHubCreator() {
+        HubCreatorNFTStorage storage $ = _getHubCreatorNFT();
+        if (
+            $._hubCreatorNFT != address(0) && IERC721($._hubCreatorNFT).balanceOf(_msgSender()) == 0
+        ) {
+            revert NotCreator(_msgSender());
+        }
+        _;
     }
 
-    function setWhitelist(address account, bool whitelist) external onlyOwner {
-        _setWhitelist(account, whitelist);
+    function setHubCreatorNFT(address creatorNFT_) external onlyOwner {
+        HubCreatorNFTStorage storage $ = _getHubCreatorNFT();
+        $._hubCreatorNFT = creatorNFT_;
+        emit HubCreatorNFTChanged(creatorNFT_);
+    }
+
+    function creatorNFT() external view returns (address) {
+        HubCreatorNFTStorage storage $ = _getHubCreatorNFT();
+        return $._hubCreatorNFT;
     }
 
     function assetHubInfo(address hub) external view returns (AssetHubInfo memory) {
-        return _assetHubs[hub];
+        AssetHubStorage storage $ = _getHubStorage();
+        return $.assetHubs[hub];
     }
 
     function assetHubInfoByName(string calldata name) external view returns (AssetHubInfo memory) {
-        address hub = _namedHubs[name];
-        return _assetHubs[hub];
+        AssetHubStorage storage $ = _getHubStorage();
+        address hub = $.namedHubs[name];
+        return $.assetHubs[hub];
     }
 
     function factories() external view returns (AssetHubImplData memory) {
-        return _implData;
+        AssetHubStorage storage $ = _getHubStorage();
+        return $.implData;
     }
 
     function setFactories(AssetHubImplData calldata data) external {
+        AssetHubStorage storage $ = _getHubStorage();
         if (data.assetHubFactory != address(0)) {
-            _implData.assetHubFactory = data.assetHubFactory;
+            $.implData.assetHubFactory = data.assetHubFactory;
         }
         if (data.tokenCollectModuleFactory != address(0)) {
-            _implData.tokenCollectModuleFactory = data.tokenCollectModuleFactory;
+            $.implData.tokenCollectModuleFactory = data.tokenCollectModuleFactory;
         }
         if (data.feeCollectModuleFactory != address(0)) {
-            _implData.feeCollectModuleFactory = data.feeCollectModuleFactory;
+            $.implData.feeCollectModuleFactory = data.feeCollectModuleFactory;
         }
         if (data.nftGatedModuleFactory != address(0)) {
-            _implData.nftGatedModuleFactory = data.nftGatedModuleFactory;
+            $.implData.nftGatedModuleFactory = data.nftGatedModuleFactory;
         }
         if (data.collectNFTFactory != address(0)) {
-            _implData.collectNFTFactory = data.collectNFTFactory;
+            $.implData.collectNFTFactory = data.collectNFTFactory;
         }
         if (data.tokenAssetCreateModuleFactory != address(0)) {
-            _implData.tokenAssetCreateModuleFactory = data.tokenAssetCreateModuleFactory;
+            $.implData.tokenAssetCreateModuleFactory = data.tokenAssetCreateModuleFactory;
         }
     }
 
     function exitsName(string calldata name) public view returns (bool) {
-        return _namedHubs[name] != address(0);
+        AssetHubStorage storage $ = _getHubStorage();
+        return $.namedHubs[name] != address(0);
     }
 
-    function deploy(AssetHubDeployData calldata data) external returns (address) {
-        _checkWhitelisted(_msgSender());
-        if (_implData.assetHubFactory == address(0)) {
+    function deploy(AssetHubDeployData calldata data) external onlyHubCreator returns (address) {
+        AssetHubStorage storage $ = _getHubStorage();
+        if ($.implData.assetHubFactory == address(0)) {
             revert('AssetHubFactory: not initialized');
         }
         if (exitsName(data.name)) {
@@ -125,7 +185,8 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase, 
     }
 
     function createHubImpl(bytes calldata initData) external returns (address hubImpl) {
-        address newHubImpl = IAssetHubFactory(_implData.assetHubFactory).create(initData);
+        AssetHubStorage storage $ = _getHubStorage();
+        address newHubImpl = IAssetHubFactory($.implData.assetHubFactory).create(initData);
         return newHubImpl;
     }
 
@@ -133,54 +194,62 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, WhitelistBase, 
         address hub,
         bytes calldata initData
     ) external returns (address) {
-        return IModuleFactory(_implData.tokenCollectModuleFactory).create(hub, initData);
+        AssetHubStorage storage $ = _getHubStorage();
+        return IModuleFactory($.implData.tokenCollectModuleFactory).create(hub, initData);
     }
 
     function createNftAssetGatedModuleImpl(
         address hub,
         bytes calldata initData
     ) external returns (address) {
-        return IModuleFactory(_implData.nftGatedModuleFactory).create(hub, initData);
+        AssetHubStorage storage $ = _getHubStorage();
+        return IModuleFactory($.implData.nftGatedModuleFactory).create(hub, initData);
     }
 
     function createFeeCollectModuleImpl(
         address hub,
         bytes calldata initData
     ) external returns (address) {
-        return IModuleFactory(_implData.feeCollectModuleFactory).create(hub, initData);
+        AssetHubStorage storage $ = _getHubStorage();
+        return IModuleFactory($.implData.feeCollectModuleFactory).create(hub, initData);
     }
 
     function createTokenAssetCreateModule(
         address hub,
         bytes calldata initData
     ) external returns (address) {
-        return IModuleFactory(_implData.tokenAssetCreateModuleFactory).create(hub, initData);
+        AssetHubStorage storage $ = _getHubStorage();
+        return IModuleFactory($.implData.tokenAssetCreateModuleFactory).create(hub, initData);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function _deployHub(AssetHubDeployData calldata data) internal returns (address) {
+        AssetHubStorage storage $ = _getHubStorage();
         address admin = data.admin;
         if (admin == address(0)) {
             admin = _msgSender();
         }
-        address assetHub = IAssetHubFactory(_implData.assetHubFactory).createUUPSUpgradeable('');
+        address assetHub = IAssetHubFactory($.implData.assetHubFactory).createUUPSUpgradeable('');
 
         AssetHubInfo memory info = AssetHubInfo({
             tokenCollectModule: _deployUUPSUpgradeableModule(
                 assetHub,
-                _implData.tokenCollectModuleFactory
+                $.implData.tokenCollectModuleFactory
             ),
-            nftGatedModule: _deployUUPSUpgradeableModule(assetHub, _implData.nftGatedModuleFactory),
+            nftGatedModule: _deployUUPSUpgradeableModule(
+                assetHub,
+                $.implData.nftGatedModuleFactory
+            ),
             feeCollectModule: _deployUUPSUpgradeableModule(
                 assetHub,
-                _implData.feeCollectModuleFactory
+                $.implData.feeCollectModuleFactory
             ),
             assetCreateModule: data.assetCreateModule,
-            collectNFT: _deployUUPSUpgradeableModule(assetHub, _implData.collectNFTFactory)
+            collectNFT: _deployUUPSUpgradeableModule(assetHub, $.implData.collectNFTFactory)
         });
-        _assetHubs[assetHub] = info;
-        _namedHubs[data.name] = assetHub;
+        $.assetHubs[assetHub] = info;
+        $.namedHubs[data.name] = assetHub;
         address[] memory collectModule = new address[](2);
         collectModule[0] = info.tokenCollectModule;
         collectModule[1] = info.feeCollectModule;

@@ -30,7 +30,8 @@ export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager +
   const nftGatedModuleFactory = m.contract(Contracts.NftAssetGatedModuleFactory, []);
   const tokenAssetCreateModuleFactory = m.contract(Contracts.TokenAssetCreateModuleFactory, [])
   const feeCollectModuleFactory = m.contract(Contracts.FeeCollectModuleFactory, [])
-  const collectNFTFactory = m.contract(Contracts.CollectNFTFactory, [])
+  const collectNFTFactory = m.contract(Contracts.CollectNFTFactory, []);
+  const feeTokenGlobalModuleFactory = m.contract(Contracts.TokenGlobalModuleFactory, []);
 
   m.call(assethubManager, "initialize", [
     [
@@ -40,13 +41,13 @@ export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager +
       tokenAssetCreateModuleFactory,
       collectNFTFactory,
       feeCollectModuleFactory
-    ]]);
+    ], feeTokenGlobalModuleFactory]);
   return { assethubManager };
 });
 
 export const deployAssetHubModule = buildModule("DeployAssetHub", (m) => {
   const deployer = m.getAccount(0);
   const { assethubManager } = m.useModule(assethubManagerModule)
-  m.call(assethubManager, "deploy", [[deployer, "DeSchool", true, ZeroAddress]])
+  m.call(assethubManager, "deploy", [[deployer, "TEST", true, ZeroAddress]])
   return { assethubManager }
 })

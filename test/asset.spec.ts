@@ -1,7 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { DeployCtx, accounts, deployContracts, deployer, deployerAddress, hubManager, user, userAddress } from "./setup.spec";
-import { AssetHub, AssetHub__factory } from "../typechain-types";
+import { AssetHub } from "../typechain-types";
 import { AbiCoder, ZeroAddress } from "ethers";
 import { IGNORE_ADDRESS, ZERO_DATA } from "./contants";
 import { createAsset, createAssetStatic } from "./helpers/asset";

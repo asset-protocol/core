@@ -13,6 +13,7 @@ import {IAssetGatedModule} from '../interfaces/IAssetGatedModule.sol';
 import {IAssetHubManager} from '../interfaces/IAssetHubManager.sol';
 import {IGlobalModule} from '../interfaces/IGlobalModule.sol';
 import {Errors} from '../libs/Errors.sol';
+import {Storage, AssetNFTStorage} from './Storage.sol';
 
 library AssetHubLogic {
     address public constant IGNORED_ADDRESS = address(1);
@@ -22,18 +23,23 @@ library AssetHubLogic {
     error InvalidCollectNFTImpl();
 
     function handleAssetCreate(
-        address manager,
         address publisher,
         uint256 assetId,
-        address createAssetModule,
-        address collectNFTImpl,
-        DataTypes.AssetCreateData calldata data,
-        mapping(uint256 => DataTypes.Asset) storage assets
+        DataTypes.AssetCreateData calldata data
     ) external {
+        mapping(address => bool) storage $collectWhitelist = Storage
+            .getCollectModuleWhitelistStorage();
+        if (data.collectModule != address(0)) {
+            if (!$collectWhitelist[data.collectModule]) {
+                revert Errors.CollectModuleNotWhitelisted();
+            }
+        }
+        address manager = Storage.getManager();
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
             IGlobalModule(globalModule).onCreateAsset(publisher, assetId, data);
         }
+        address createAssetModule = Storage.getCreateAssetModule();
         if (createAssetModule != address(0)) {
             ICreateAssetModule(createAssetModule).processCreate(
                 publisher,
@@ -41,9 +47,10 @@ library AssetHubLogic {
                 data.assetCreateModuleData
             );
         }
-        address collectNFT = _deployCollectNFT(collectNFTImpl, assetId, publisher);
-        assets[assetId].collectNFT = collectNFT;
-        emitAssetCreated(assetId, publisher, assets[assetId], data);
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        address collectNFT = _deployCollectNFT(Storage.getCollectNFTImpl(), assetId, publisher);
+        $._assets[assetId].collectNFT = collectNFT;
+        emitAssetCreated(assetId, publisher, $._assets[assetId], data);
 
         DataTypes.AssetUpdateData memory updateData = DataTypes.AssetUpdateData({
             collectModule: data.collectModule,
@@ -52,17 +59,27 @@ library AssetHubLogic {
             gatedModuleInitData: data.gatedModuleInitData,
             contentURI: data.contentURI
         });
-        _updateAsset(assetId, publisher, updateData, assets[assetId]);
+        _updateAsset(assetId, publisher, updateData, $._assets[assetId]);
     }
 
     function UpdateAsset(
         address manager,
         uint256 assetId,
         address publisher,
-        DataTypes.AssetUpdateData memory data,
-        mapping(uint256 => DataTypes.Asset) storage assets
+        DataTypes.AssetUpdateData memory data
     ) public {
-        DataTypes.Asset storage asset = assets[assetId];
+        mapping(address => bool) storage $collectWhitelist = Storage
+            .getCollectModuleWhitelistStorage();
+        if (
+            data.collectModule != address(0) && data.collectModule != AssetHubLogic.IGNORED_ADDRESS
+        ) {
+            if (!($collectWhitelist[data.collectModule])) {
+                revert Errors.CollectModuleNotWhitelisted();
+            }
+        }
+
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        DataTypes.Asset storage asset = $._assets[assetId];
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
             IGlobalModule(globalModule).onUpdate(publisher, assetId);
@@ -130,11 +147,11 @@ library AssetHubLogic {
         uint256 assetId,
         address publiser,
         address collector,
-        bytes calldata collectModuleData,
-        mapping(uint256 => DataTypes.Asset) storage assets
+        bytes calldata collectModuleData
     ) external returns (uint256) {
-        address collectNFT = assets[assetId].collectNFT;
-        address collectModule = assets[assetId].collectModule;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        address collectNFT = $._assets[assetId].collectNFT;
+        address collectModule = $._assets[assetId].collectModule;
 
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
@@ -154,7 +171,7 @@ library AssetHubLogic {
             tokenId = ICollectNFT(collectNFT).mint(collector);
         }
         unchecked {
-            assets[assetId].collectCount++;
+            $._assets[assetId].collectCount++;
         }
         emitCollected(
             assetId,

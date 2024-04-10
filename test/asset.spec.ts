@@ -42,7 +42,7 @@ describe("Create Asset", async () => {
     })).to.not.be.reverted;
     expect(await assetHub.balanceOf(userAddress)).to.be.equal(1)
     expect(await assetHub.count(userAddress)).to.be.equal(1)
-    expect(await assetHub.tokenURI(1)).to.be.equal("https://www.google.com")
+    expect(await assetHub.tokenURI(0)).to.be.equal("https://www.google.com")
   })
 
 

@@ -6,14 +6,11 @@ import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/Pau
 import {ERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import {IERC4906} from '@openzeppelin/contracts/interfaces/IERC4906.sol';
 import {IERC165} from '@openzeppelin/contracts/interfaces/IERC165.sol';
+import {AssetNFTStorage, Storage} from './Storage.sol';
 import {Errors} from '../libs/Errors.sol';
 import {Events} from '../libs/Events.sol';
 
 contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
-    mapping(uint256 => DataTypes.Asset) internal _assets;
-    mapping(address => uint256[]) internal _publisherAssets;
-    uint256 internal _assertCounter;
-
     function __AssetNFTBase_init(
         string memory name_,
         string memory symbol_
@@ -23,7 +20,8 @@ contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
     }
 
     function count(address publisher) external view returns (uint256) {
-        return _publisherAssets[publisher].length;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        return $._publisherAssets[publisher].length;
     }
 
     function supportsInterface(
@@ -41,7 +39,9 @@ contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
             revert Errors.NoAssetPublisher();
         }
 
-        uint256 assetId = ++_assertCounter;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        uint256 assetId = $._assertCounter;
+        $._assertCounter = assetId + 1;
         _mint(pub, assetId);
         DataTypes.Asset memory asset = DataTypes.Asset({
             contentURI: data.contentURI,
@@ -52,8 +52,8 @@ contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
             timestamp: block.timestamp
         });
 
-        _assets[_assertCounter] = asset;
-        _publisherAssets[pub].push(assetId);
+        $._assets[assetId] = asset;
+        $._publisherAssets[pub].push(assetId);
         return assetId;
     }
 
@@ -61,7 +61,8 @@ contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
         uint256 tokenId
     ) public view override(ERC721Upgradeable) returns (string memory) {
         _checkAssetId(tokenId);
-        return _assets[tokenId].contentURI;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        return $._assets[tokenId].contentURI;
     }
 
     function _checkAssetId(uint256 assetId) internal view {

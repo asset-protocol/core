@@ -20,7 +20,7 @@ describe("Collect Asset with fee collect module", async () => {
     feeCollectModule = await new FeeCollectModule__factory(user).deploy()
     await feeCollectModule.initialize(await assetHub.getAddress())
     const adminHub = cts.assetHub.connect(deployer)
-    await expect(adminHub.collectModuleWhitelist(await feeCollectModule.getAddress(), true))
+    await expect(adminHub.setCollectModuleWhitelist(await feeCollectModule.getAddress(), true))
       .to.not.be.reverted
 
     const initData = AbiCoder.defaultAbiCoder().encode(

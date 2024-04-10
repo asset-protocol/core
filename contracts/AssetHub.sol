@@ -10,17 +10,13 @@ import {ICreateAssetModule} from './interfaces/ICreateAssetModule.sol';
 import {IAssetGatedModule} from './interfaces/IAssetGatedModule.sol';
 import {AssetNFTBase} from './base/AssetNFTBase.sol';
 import {AssetHubLogic} from './base/AssetHubLogic.sol';
+import {Storage, AssetNFTStorage} from './base/Storage.sol';
 import {Events} from './libs/Events.sol';
 import {Errors} from './libs/Errors.sol';
 import {Constants} from './libs/Constants.sol';
 import {DataTypes} from './libs/DataTypes.sol';
 
 contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHub {
-    address private _collectNFTImpl;
-    address private _createAssetModule;
-    address private _manager;
-    mapping(address => bool) private _collectModuleWhitelisted;
-
     function initialize(
         string memory name,
         address manager,
@@ -32,12 +28,12 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         __AssetNFTBase_init(name, name);
         __Ownable_init(admin);
         __UUPSUpgradeable_init();
-        _collectNFTImpl = collectNFT;
-        _createAssetModule = createAssetModule;
-        _manager = manager;
+        Storage.setCollectNFTImpl(collectNFT);
+        Storage.setCreateAssetModule(createAssetModule);
+        Storage.setManager(manager);
         for (uint i = 0; i < whitelistedCollectModules.length; i++) {
             if (whitelistedCollectModules[i] != address(0)) {
-                _collectModuleWhitelist(whitelistedCollectModules[i], true);
+                _setCollectModuleWhitelist(whitelistedCollectModules[i], true);
             }
         }
     }
@@ -53,31 +49,18 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
     }
 
     function globalModule() external returns (address) {
-        return AssetHubLogic.getGlobalModule(_manager);
+        return AssetHubLogic.getGlobalModule(Storage.getManager());
     }
 
     function create(
         DataTypes.AssetCreateData calldata data
     ) external override(IAssetHub) whenNotPaused returns (uint256) {
-        if (data.collectModule != address(0)) {
-            if (!_collectModuleWhitelisted[data.collectModule]) {
-                revert Errors.CollectModuleNotWhitelisted();
-            }
-        }
         address pub = data.publisher;
         if (pub == address(0)) {
             pub = _msgSender();
         }
         uint256 res = _createAsset(pub, data);
-        AssetHubLogic.handleAssetCreate(
-            _manager,
-            pub,
-            res,
-            _createAssetModule,
-            _collectNFTImpl,
-            data,
-            _assets
-        );
+        AssetHubLogic.handleAssetCreate(pub, res, data);
         return res;
     }
 
@@ -86,23 +69,16 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         DataTypes.AssetUpdateData calldata data
     ) external whenNotPaused {
         _requireAssetPublisher(assetId, _msgSender());
-        if (
-            data.collectModule != address(0) && data.collectModule != AssetHubLogic.IGNORED_ADDRESS
-        ) {
-            if (!_collectModuleWhitelisted[data.collectModule]) {
-                revert Errors.CollectModuleNotWhitelisted();
-            }
-        }
-        AssetHubLogic.UpdateAsset(_manager, assetId, _ownerOf(assetId), data, _assets);
+        AssetHubLogic.UpdateAsset(Storage.getManager(), assetId, _ownerOf(assetId), data);
     }
 
     function setCreateAssetModule(address assetModule) external onlyOwner {
-        if (_createAssetModule != address(0)) {
+        if (assetModule != address(0)) {
             if (!IERC165(assetModule).supportsInterface(type(ICreateAssetModule).interfaceId)) {
                 revert Errors.InvalidCreateAssetModule();
             }
         }
-        _createAssetModule = assetModule;
+        Storage.setCreateAssetModule(assetModule);
     }
 
     function assetPublisher(uint256 assetId) external view returns (address) {
@@ -110,31 +86,34 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
     }
 
     function getCreateAssetModule() external view returns (address) {
-        return _createAssetModule;
+        return Storage.getCreateAssetModule();
     }
 
     function assetGated(uint256 assetId, address account) external view returns (bool) {
-        address gatedModule = _assets[assetId].gatedModule;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        address gatedModule = $._assets[assetId].gatedModule;
         if (gatedModule == address(0)) {
             return true;
         }
         return IAssetGatedModule(gatedModule).isGated(assetId, account);
     }
 
-    function collectModuleWhitelist(
+    function setCollectModuleWhitelist(
         address collectModule,
         bool whitelist
     ) external whenNotPaused onlyOwner {
-        _collectModuleWhitelist(collectModule, whitelist);
+        _setCollectModuleWhitelist(collectModule, whitelist);
     }
 
-    function _collectModuleWhitelist(address collectModule, bool whitelist) internal {
-        _collectModuleWhitelisted[collectModule] = whitelist;
+    function _setCollectModuleWhitelist(address collectModule, bool whitelist) internal {
+        mapping(address => bool) storage $ = Storage.getCollectModuleWhitelistStorage();
+        $[collectModule] = whitelist;
         emit Events.CollectModuleWhitelisted(collectModule, whitelist, block.timestamp);
     }
 
-    function isCollectModuleWhitelisted(address followModule) public view returns (bool) {
-        return _collectModuleWhitelisted[followModule];
+    function collectModuleWhitelisted(address followModule) public view returns (bool) {
+        mapping(address => bool) storage $ = Storage.getCollectModuleWhitelistStorage();
+        return $[followModule];
     }
 
     function collect(
@@ -145,28 +124,30 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         address collector = _msgSender();
         return
             AssetHubLogic.collect(
-                _manager,
+                Storage.getManager(),
                 assetId,
                 _ownerOf(assetId),
                 collector,
-                collectModuleData,
-                _assets
+                collectModuleData
             );
     }
 
     function assetCollectCount(uint256 assetId) external view returns (uint256) {
-        return _assets[assetId].collectCount;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        return $._assets[assetId].collectCount;
     }
 
     function assetCollectNFT(uint256 assetId) external view returns (address) {
-        return _assets[assetId].collectNFT;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        return $._assets[assetId].collectNFT;
     }
 
     function userCollectCount(uint256 assetId, address collector) external view returns (uint256) {
         if (collector == address(0)) {
             return 0;
         }
-        address collectNFT = _assets[assetId].collectNFT;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        address collectNFT = $._assets[assetId].collectNFT;
         if (collectNFT == address(0)) {
             return 0;
         }
@@ -180,7 +161,8 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         address from,
         address to
     ) external override {
-        address expectedCollectNFT = _assets[assetId].collectNFT;
+        AssetNFTStorage storage $ = Storage.getAssetStorage();
+        address expectedCollectNFT = $._assets[assetId].collectNFT;
         if (_msgSender() != expectedCollectNFT) revert Errors.CallerNotCollectNFT();
         emit Events.CollectNFTTransfered(
             publiser,

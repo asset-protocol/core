@@ -54,7 +54,7 @@ describe("AssetHubFactory", async function () {
     const tokenCollectModule = logRes[3][3];
     const feeCollectModule = logRes[3][4];
     const hub = AssetHub__factory.connect(hubAddr, deployer);
-    expect(await hub.isCollectModuleWhitelisted(tokenCollectModule)).to.be.true;
-    expect(await hub.isCollectModuleWhitelisted(feeCollectModule)).to.be.true;
+    expect(await hub.collectModuleWhitelisted(tokenCollectModule)).to.be.true;
+    expect(await hub.collectModuleWhitelisted(feeCollectModule)).to.be.true;
   });
 });

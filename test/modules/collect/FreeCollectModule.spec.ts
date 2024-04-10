@@ -1,4 +1,4 @@
-import { DeployCtx, deployContracts, deployer, user, userAddress } from "../../setup.spec";
+import { DeployCtx, assetHubLogic, assethubLibs, deployContracts, deployer, user, userAddress } from "../../setup.spec";
 import { AssetHub, EmptyCollectModule__factory, Events__factory } from "../../../typechain-types";
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
@@ -61,7 +61,7 @@ describe("Subcribe to Asset with free module", async function () {
     const assetHub = cts.assetHub.connect(user)
     const sm = await new EmptyCollectModule__factory(user).deploy(assetHub)
     const smAdrr = await sm.getAddress()
-    await expect(assetHub.collectModuleWhitelist(smAdrr, true))
+    await expect(assetHub.setCollectModuleWhitelist(smAdrr, true))
       .to.be.revertedWithCustomError(assetHub, ERRORS.OwnableUnauthorizedAccount)
       .withArgs(userAddress)
   })
@@ -70,7 +70,7 @@ describe("Subcribe to Asset with free module", async function () {
     const sm = await new EmptyCollectModule__factory(user).deploy(cts.assetHub)
     const smAdrr = await sm.getAddress()
     const adminAssertHub = cts.assetHub.connect(deployer)
-    await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true)).to.not.be.reverted
+    await expect(adminAssertHub.setCollectModuleWhitelist(smAdrr, true)).to.not.be.reverted
   })
 
   it("isCollectModuleWhitelisted should return true after set collect module whitelist", async function () {
@@ -78,10 +78,10 @@ describe("Subcribe to Asset with free module", async function () {
     const sm = await new EmptyCollectModule__factory(user).deploy(cts.assetHub)
     const smAdrr = await sm.getAddress()
 
-    expect(await adminAssertHub.isCollectModuleWhitelisted(smAdrr)).to.be.false
-    await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true))
+    expect(await adminAssertHub.collectModuleWhitelisted(smAdrr)).to.be.false
+    await expect(adminAssertHub.setCollectModuleWhitelist(smAdrr, true))
       .to.not.be.reverted
-    expect(await adminAssertHub.isCollectModuleWhitelisted(smAdrr)).to.be.true
+    expect(await adminAssertHub.collectModuleWhitelisted(smAdrr)).to.be.true
   })
 
   it("should revert when create asset with a collect module that is not whitelisted", async function () {
@@ -96,7 +96,7 @@ describe("Subcribe to Asset with free module", async function () {
       assetCreateModuleData: ZERO_DATA,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
-    })).to.be.revertedWithCustomError(assetHub, ERRORS.CollectModuleNotWhitelisted)
+    })).to.be.revertedWithCustomError(assetHubLogic, ERRORS.CollectModuleNotWhitelisted)
   })
 
   it("should created asset with a collect module that is whitelisted", async function () {
@@ -104,7 +104,7 @@ describe("Subcribe to Asset with free module", async function () {
     const smAdrr = await sm.getAddress()
 
     const adminAssertHub = cts.assetHub.connect(deployer)
-    await expect(adminAssertHub.collectModuleWhitelist(smAdrr, true)).to.not.be.reverted
+    await expect(adminAssertHub.setCollectModuleWhitelist(smAdrr, true)).to.not.be.reverted
 
     await expect(assetHub.create({
       publisher: ZeroAddress,

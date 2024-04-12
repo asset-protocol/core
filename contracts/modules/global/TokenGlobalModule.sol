@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
 import {IERC20} from '@openzeppelin/contracts/interfaces/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IGlobalModule} from '../../interfaces/IGlobalModule.sol';
@@ -29,7 +30,12 @@ struct HubTokenFeeConfig {
     uint256 collectFee;
 }
 
-contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable {
+contract TokenGlobalModule is
+    IGlobalModule,
+    UpgradeableBase,
+    OwnableUpgradeable,
+    ERC165Upgradeable
+{
     using SafeERC20 for IERC20;
     struct TokenGlobalModuleStorage {
         address _manager;
@@ -50,10 +56,12 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
     function initialize(
         address manager,
         address token,
+        address recipient,
         TokenFeeConfig calldata feeConfig
     ) external initializer {
         __UUPSUpgradeable_init();
         __Ownable_init(_msgSender());
+        __ERC165_init();
         TokenGlobalModuleStorage storage $ = _getTokenStorage();
         $._hubConfigs[address(0)] = TokenFeeConfigData({
             exist: true,
@@ -63,6 +71,7 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
         });
         $._token = token;
         $._manager = manager;
+        $._recipient = recipient;
     }
 
     function version() external view virtual override returns (string memory) {
@@ -204,5 +213,10 @@ contract TokenGlobalModule is IGlobalModule, UpgradeableBase, OwnableUpgradeable
 
     function _checkHub(address hub) internal pure {
         require(hub != address(0), 'hub should not be zero');
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IGlobalModule).interfaceId || super.supportsInterface(interfaceId);
     }
 }

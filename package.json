@@ -3,7 +3,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test --network hardhat --verbose",
     "gen:go": "hardhat export-abi --no-compile && abigen --abi=abi/AssetHub.json --pkg=assethub --out=asset-go/assethub.go",
-    "deploy:test": "hardhat ignition deploy ignition/modules/deploy-manager.ts --network polygonMumbai --verify",
+    "deploy-manager": "hardhat ignition deploy ignition/modules/deploy-full-manager.ts --network polygonMumbai --verify",
     "newhub": "hardhat ignition deploy ignition/modules/deploy-newhub.ts --network polygonMumbai"
   },
   "devDependencies": {
@@ -19,24 +19,25 @@
     "@typechain/hardhat": "9.0.0",
     "@types/chai": "4.2.0",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.10.8",
+    "@types/node": "^20.12.7",
     "chai": "4.2.0",
     "ethereum-waffle": "^4.0.10",
     "ethers": "6.11.1",
-    "hardhat": "^2.19.4",
+    "hardhat": "^2.22.2",
     "hardhat-abi-exporter": "^2.10.1",
     "hardhat-gas-reporter": "1.0.8",
-    "mocha": "^10.2.0",
+    "mocha": "^10.4.0",
     "solidity-coverage": "0.8.0",
     "ts-node": "^10.9.2",
     "typechain": "8.3.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.1",
-    "@openzeppelin/contracts-upgradeable": "^5.0.1",
-    "@openzeppelin/hardhat-upgrades": "^3.0.3",
+    "@nomicfoundation/ignition-core": "^0.15.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@openzeppelin/hardhat-upgrades": "^3.0.5",
     "dotenv": "^16.4.5",
-    "undici": "^6.6.2"
+    "undici": "^6.12.0"
   }
 }

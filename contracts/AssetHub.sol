@@ -41,7 +41,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function version() external view virtual override returns (string memory) {
-        return '0.1.0';
+        return '0.2.1';
     }
 
     function hubOwner() public view override returns (address) {

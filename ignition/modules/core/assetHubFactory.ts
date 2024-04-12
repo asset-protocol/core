@@ -1,6 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./contracts";
 import { ZeroAddress } from "ethers";
+import tokenGlobalModuleModule from './tokenGlobalModule';
+import { assethubCreatorNFTModule } from "./assethubCreatorNft";
 
 export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) => {
   const assethubFactory = m.contract(Contracts.AssetHubFactory, [], {
@@ -23,31 +25,26 @@ export const assethubManagerModule = buildModule(Contracts.AssetHubManager, (m) 
   return { assethubManager, assethubManagerProxy };
 });
 
-export const assethubManagerInitModule = buildModule(Contracts.AssetHubManager + "Init", (m) => {
-  const { assethubManager } = m.useModule(assethubManagerModule);
+export const factoriesModule = buildModule(Contracts.AssetHubManager + "Facotries", (m) => {
   const { assethubFactory } = m.useModule(assethubFactoryModule);
   const tokenCollectModuleFactory = m.contract(Contracts.TokenCollectModuleFactory, []);
   const nftGatedModuleFactory = m.contract(Contracts.NftAssetGatedModuleFactory, []);
   const tokenAssetCreateModuleFactory = m.contract(Contracts.TokenAssetCreateModuleFactory, [])
   const feeCollectModuleFactory = m.contract(Contracts.FeeCollectModuleFactory, [])
   const collectNFTFactory = m.contract(Contracts.CollectNFTFactory, []);
-  const feeTokenGlobalModuleFactory = m.contract(Contracts.TokenGlobalModuleFactory, []);
-
-  m.call(assethubManager, "initialize", [
-    [
-      assethubFactory,
-      tokenCollectModuleFactory,
-      nftGatedModuleFactory,
-      tokenAssetCreateModuleFactory,
-      collectNFTFactory,
-      feeCollectModuleFactory
-    ], feeTokenGlobalModuleFactory]);
-  return { assethubManager };
+  return {
+    assethubFactory,
+    tokenCollectModuleFactory,
+    nftGatedModuleFactory,
+    tokenAssetCreateModuleFactory,
+    collectNFTFactory,
+    feeCollectModuleFactory
+  };
 });
 
-export const deployAssetHubModule = buildModule("DeployAssetHub", (m) => {
+export const deployAssetHubModule = (hubName: string) => buildModule("DeployAssetHub", (m) => {
   const deployer = m.getAccount(0);
   const { assethubManager } = m.useModule(assethubManagerModule)
-  m.call(assethubManager, "deploy", [[deployer, "TEST", true, ZeroAddress]])
+  m.call(assethubManager, "deploy", [[deployer, hubName, true, ZeroAddress]])
   return { assethubManager }
 })

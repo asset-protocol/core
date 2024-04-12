@@ -8,8 +8,7 @@ contract DebugTest {
     using Strings for uint256;
 
     function value() external pure {
-        //keccak256(abi.encode(uint256(keccak256("assetnft.storage.createmodule")) - 1)) & ~bytes32(uint256(0xff))
-        bytes32 v = keccak256(abi.encode(uint256(keccak256('assetnft.storage.manager')) - 1)) &
+        bytes32 v = keccak256(abi.encode(uint256(keccak256('curation.storage.info')) - 1)) &
             ~bytes32(uint256(0xff));
         console.log('value', uint256(v).toHexString());
     }

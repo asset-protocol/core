@@ -35,6 +35,7 @@ library Storage {
         }
     }
 
+    /******** AssetHub _manager *******/
     struct ManagerStorage {
         address _manager;
     }
@@ -59,6 +60,7 @@ library Storage {
         return $._manager;
     }
 
+    /******** AssetHub _collectNFTImpl *******/
     struct CollectNFTImplStorage {
         address _collectNFTImpl;
     }
@@ -82,6 +84,7 @@ library Storage {
         return $._collectNFTImpl;
     }
 
+    /******** AssetHub _createAssetModule *******/
     struct CreateAssetModuleStorage {
         address _createAssetModule;
     }

@@ -1,6 +1,6 @@
 import { ethers, upgrades } from 'hardhat';
 import "@openzeppelin/hardhat-upgrades";
-import { AssetHub, AssetHubFactory__factory, AssetHubLogic__factory, AssetHubManager, AssetHubManager__factory, CollectNFTFactory__factory, Events, Events__factory, TokenCollectModuleFactory__factory, TokenAssetCreateModuleFactory__factory, NftAssetGatedModuleFactory__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, FeeCollectModuleFactory__factory, TokenGlobalModuleFactory__factory, TokenGlobalModule, TokenGlobalModule__factory, AssetHubLogic } from "../typechain-types";
+import { AssetHub, AssetHubFactory__factory, AssetHubLogic__factory, AssetHubManager, AssetHubManager__factory, CollectNFTFactory__factory, Events, Events__factory, TokenCollectModuleFactory__factory, TokenAssetCreateModuleFactory__factory, NftAssetGatedModuleFactory__factory, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, FeeCollectModuleFactory__factory, TokenGlobalModule, TokenGlobalModule__factory, AssetHubLogic } from "../typechain-types";
 import { AbiCoder, Signer, ZeroAddress, dataSlice } from 'ethers';
 import { expect } from 'chai';
 import { AssetHubLibraryAddresses } from '../typechain-types/factories/contracts/AssetHub__factory';
@@ -80,7 +80,14 @@ before(async function () {
   const nftGatedModuleFactory = await new NftAssetGatedModuleFactory__factory(deployer).deploy();
   const tokenAssetCreateModuleFactory = await new TokenAssetCreateModuleFactory__factory(deployer).deploy();
   const collectNFTFactory = await new CollectNFTFactory__factory(deployer).deploy();
-  const tokenGlobalModuleFactory = await new TokenGlobalModuleFactory__factory(deployer).deploy();
+  const tokenGlobalModuleProxy = await upgrades.deployProxy(
+    await ethers.getContractFactory("TokenGlobalModule"),
+    [],
+    {
+      kind: "uups",
+      initializer: false
+    });
+  tokenGlobalModule = TokenGlobalModule__factory.connect(await tokenGlobalModuleProxy.getAddress(), deployer);
   const factory = new AssetHubManager__factory(deployer);
   const hubManagerProxy = await upgrades.deployProxy(factory, [], {
     kind: "uups",
@@ -88,26 +95,17 @@ before(async function () {
     unsafeAllow: ["external-library-linking"],
   })
   hubManager = await ethers.getContractAt("AssetHubManager", hubManagerProxy);
-  const tx = await hubManager.initialize({
+  await hubManager.initialize({
     assetHubFactory: await assetHubFactory.getAddress(),
     tokenCollectModuleFactory: await tokenCollectModuleFactory.getAddress(),
     nftGatedModuleFactory: await nftGatedModuleFactory.getAddress(),
     tokenAssetCreateModuleFactory: await tokenAssetCreateModuleFactory.getAddress(),
     collectNFTFactory: await collectNFTFactory.getAddress(),
     feeCollectModuleFactory: await feeeAssetCollectModuleFactory.getAddress()
-  }, await tokenGlobalModuleFactory.getAddress());
-  const res = await tx.wait();
-  const instance = AssetHubManager__factory.createInterface();
-  const eventLog = res?.logs.find(l => l.topics[0] === instance.getEvent("GlobalModuleChanged").topicHash);
-  const log = instance.decodeEventLog("GlobalModuleChanged", eventLog!.data);
-  tokenGlobalModule = TokenGlobalModule__factory.connect(log[0], deployer);
-  await expect(tokenGlobalModule.setRecipient(deployerAddress)).to.not.be.reverted;
-  await expect(tokenGlobalModule.setToken(await testToken.getAddress())).to.not.be.reverted;
-  await expect(tokenGlobalModule.setDefaultConfig({
+  }, ZeroAddress, tokenGlobalModule);
+  await tokenGlobalModule.initialize(hubManager, testToken, deployer, {
     collectFee: 0,
     updateFee: 0,
     createFee: 0
-  })).to.not.be.reverted;
+  });
 });
-
-

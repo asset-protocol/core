@@ -6,7 +6,7 @@ import { AbiCoder, ZeroAddress } from "ethers";
 import { IGNORE_ADDRESS, ZERO_DATA } from "./contants";
 import { createAsset, createAssetStatic } from "./helpers/asset";
 
-const CURRENT_ASSETHUB_VERSION = "0.1.0";
+const CURRENT_ASSETHUB_VERSION = "0.2.1";
 
 describe("Upgrade hub", async () => {
   let cts: DeployCtx = {} as any

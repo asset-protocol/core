@@ -59,11 +59,12 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
 
     function initialize(
         AssetHubImplData calldata data,
-        address globalModuleFactory
+        address creatorNFT_,
+        address globalModule_
     ) external initializer {
         __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
-        __AssetHubManager_init(data, globalModuleFactory);
+        __AssetHubManager_init(data, creatorNFT_, globalModule_);
     }
 
     function _getHubStorage() private pure returns (AssetHubStorage storage $) {
@@ -72,7 +73,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
         }
     }
 
-    function _getGlobalModule() private pure returns (GlobalModuleStorage storage $) {
+    function _getGlobalModuleStorage() private pure returns (GlobalModuleStorage storage $) {
         assembly {
             $.slot := GlobalModuleLocation
         }
@@ -86,13 +87,13 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
 
     function __AssetHubManager_init(
         AssetHubImplData calldata data,
-        address globalModuleFactory
+        address hubCreatorNFT_,
+        address globalModule_
     ) internal onlyInitializing {
         AssetHubStorage storage $ = _getHubStorage();
         $.implData = data;
-        bytes memory initdata;
-        address gm = IAssetHubFactory(globalModuleFactory).createUUPSUpgradeable(initdata);
-        setGolbalModule(gm);
+        setHubCreatorNFT(hubCreatorNFT_);
+        setGolbalModule(globalModule_);
     }
 
     function version() external view virtual override returns (string memory) {
@@ -100,11 +101,11 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
     }
 
     function globalModule() public view virtual returns (address) {
-        return _getGlobalModule()._module;
+        return _getGlobalModuleStorage()._module;
     }
 
     function setGolbalModule(address gm) public onlyOwner {
-        GlobalModuleStorage storage $ = _getGlobalModule();
+        GlobalModuleStorage storage $ = _getGlobalModuleStorage();
         $._module = gm;
         emit GlobalModuleChanged(gm);
     }
@@ -119,7 +120,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
         _;
     }
 
-    function setHubCreatorNFT(address creatorNFT_) external onlyOwner {
+    function setHubCreatorNFT(address creatorNFT_) public onlyOwner {
         HubCreatorNFTStorage storage $ = _getHubCreatorNFT();
         $._hubCreatorNFT = creatorNFT_;
         emit HubCreatorNFTChanged(creatorNFT_);

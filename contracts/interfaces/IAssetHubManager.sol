@@ -6,9 +6,9 @@ struct AssetHubDeployData {
     string name;
     bool collectNft;
     address assetCreateModule;
-    // bool useTokenCollect;
-    // bool useNftGatedModule;
-    // bool useAssetCreateModule;
+    bool useTokenCollect;
+    bool useNftGatedModule;
+    bool useAssetCreateModule;
 }
 
 interface IAssetHubManager {

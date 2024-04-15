@@ -3,6 +3,7 @@ import { Contracts } from "./contracts";
 import { ZeroAddress } from "ethers";
 import tokenGlobalModuleModule from './tokenGlobalModule';
 import { assethubCreatorNFTModule } from "./assethubCreatorNft";
+import { LiteAssetHubManagerModule } from "./liteManager";
 
 export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) => {
   const assethubFactory = m.contract(Contracts.AssetHubFactory, [], {
@@ -44,7 +45,7 @@ export const factoriesModule = buildModule(Contracts.AssetHubManager + "Facotrie
 
 export const deployAssetHubModule = (hubName: string) => buildModule("DeployAssetHub", (m) => {
   const deployer = m.getAccount(0);
-  const { assethubManager } = m.useModule(assethubManagerModule)
-  m.call(assethubManager, "deploy", [[deployer, hubName, true, ZeroAddress]])
-  return { assethubManager }
+  const { liteManager } = m.useModule(LiteAssetHubManagerModule)
+  m.call(liteManager, "deploy", [[deployer, hubName, ZeroAddress]])
+  return { liteManager }
 })

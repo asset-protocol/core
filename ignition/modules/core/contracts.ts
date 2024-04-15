@@ -25,5 +25,14 @@ export enum Contracts {
   TokenGlobalModule = "TokenGlobalModule",
   TokenGlobalModuleFactory = "TokenGlobalModuleFactory",
 
-  AssetHubCreatorNFT = "AssetHubCreatorNFT"
+  AssetHubCreatorNFT = "AssetHubCreatorNFT",
+
+  LiteAssetHubManager = "LiteAssetHubManager",
+
+  OneCollectNFT = "OneCollectNFT",
+  OneTokenCollectModule = "OneTokenCollectModule",
+  OneFeeCollectModule = "OneFeeCollectModule",
+  OneNftAssetGatedModule = "OneNftAssetGatedModule",
+
+  UpgradeableProxy = "UpgradeableProxy",
 }

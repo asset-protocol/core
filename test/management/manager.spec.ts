@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { deployer, hubManager } from "../setup.spec";
 import { ZeroAddress } from "ethers";
-import { AssetHubManager__factory, AssetHub__factory } from "../../typechain-types";
+import { AssetHub__factory, LiteAssetHubManager__factory } from "../../typechain-types";
 
 const HUB_NAME = "TEST_HUB"
 
@@ -14,7 +14,7 @@ describe("AssetHubFactory", async function () {
       admin: await deployer.getAddress(),
       name: HUB_NAME,
       collectNft: true,
-      assetCreateModule: ZeroAddress,
+      createModule: ZeroAddress,
     }
     await expect(hubManager.deploy(args)).to.be.not.reverted;
   });
@@ -23,8 +23,7 @@ describe("AssetHubFactory", async function () {
     await expect(hubManager.deploy({
       admin: await deployer.getAddress(),
       name: HUB_NAME,
-      collectNft: true,
-      assetCreateModule: ZeroAddress,
+      createModule: ZeroAddress,
     })).to.be.revertedWithCustomError(hubManager, "NameHubExisted")
       .withArgs(HUB_NAME);
   })
@@ -33,8 +32,7 @@ describe("AssetHubFactory", async function () {
     await expect(hubManager.deploy({
       admin: await deployer.getAddress(),
       name: HUB_NAME + "_V2",
-      collectNft: true,
-      assetCreateModule: ZeroAddress,
+      createModule: ZeroAddress,
     })).to.not.be.reverted;
   })
 
@@ -42,17 +40,16 @@ describe("AssetHubFactory", async function () {
     const tx = await hubManager.deploy({
       admin: await deployer.getAddress(),
       name: HUB_NAME + "_V3",
-      collectNft: true,
-      assetCreateModule: ZeroAddress,
+      createModule: ZeroAddress,
     })
     const resp = await tx.wait();
     expect(resp?.logs).to.not.be.empty;
     const logdata = resp!.logs.find((log) => log.topics[0] === hubManager.interface.getEvent("AssetHubDeployed").topicHash);
     expect(logdata).to.not.be.undefined;
-    const logRes = AssetHubManager__factory.createInterface().decodeEventLog("AssetHubDeployed", logdata!.data, logdata!.topics);
+    const logRes = LiteAssetHubManager__factory.createInterface().decodeEventLog("AssetHubDeployed", logdata!.data, logdata!.topics);
     const hubAddr = logRes[2];
-    const tokenCollectModule = logRes[3][3];
-    const feeCollectModule = logRes[3][4];
+    const tokenCollectModule = logRes[3][1];
+    const feeCollectModule = logRes[3][2];
     const hub = AssetHub__factory.connect(hubAddr, deployer);
     expect(await hub.collectModuleWhitelisted(tokenCollectModule)).to.be.true;
     expect(await hub.collectModuleWhitelisted(feeCollectModule)).to.be.true;

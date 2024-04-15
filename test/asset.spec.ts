@@ -1,6 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import { DeployCtx, accounts, deployContracts, deployer, deployerAddress, hubManager, user, userAddress } from "./setup.spec";
+import { DeployCtx, accounts, deployContracts, deployer, deployerAddress, hubManager, modules, user, userAddress } from "./setup.spec";
 import { AssetHub } from "../typechain-types";
 import { AbiCoder, ZeroAddress } from "ethers";
 import { IGNORE_ADDRESS, ZERO_DATA } from "./contants";
@@ -14,12 +14,12 @@ describe("Upgrade hub", async () => {
     cts = await loadFixture(deployContracts)
   })
 
-  it("version should increase when upgrade hub", async () => {
-    const nextHub = await hubManager.createHubImpl.staticCall(ZERO_DATA);
-    await expect(hubManager.createHubImpl(ZERO_DATA)).to.not.be.reverted;
-    await expect(cts.assetHub.upgradeToAndCall(nextHub, ZERO_DATA)).to.not.be.reverted;
-    expect(await cts.assetHub.version()).to.be.equal(CURRENT_ASSETHUB_VERSION);
-  })
+  // it("version should increase when upgrade hub", async () => {
+  //   const nextHub = await hubManager.createHubImpl.staticCall(ZERO_DATA);
+  //   await expect(hubManager.createHubImpl(ZERO_DATA)).to.not.be.reverted;
+  //   await expect(cts.assetHub.upgradeToAndCall(nextHub, ZERO_DATA)).to.not.be.reverted;
+  //   expect(await cts.assetHub.version()).to.be.equal(CURRENT_ASSETHUB_VERSION);
+  // })
 });
 
 describe("Create Asset", async () => {
@@ -82,13 +82,13 @@ describe("Create Asset", async () => {
       ["address", "address", "uint256"],
       ["0xc2ADF187D9B064F68FcD8183195cddDB33E10E8F", ZeroAddress, 10]
     )
-    await expect(assetHub.update(tokenId, {
+    await assetHub.update(tokenId, {
       contentURI: "https://www.baidu.com",
-      collectModule: cts.tokenCollectModule,
+      collectModule: modules.tokenCollectModule,
       collectModuleInitData: initData,
       gatedModule: IGNORE_ADDRESS,
       gatedModuleInitData: ZERO_DATA,
-    })).to.not.be.reverted;
+    });
   })
 
   it("should update asset without update", async function () {

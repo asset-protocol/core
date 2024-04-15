@@ -5,6 +5,7 @@ interface ICollectNFT {
     function initialize(
         string calldata name_,
         string calldata symbol_,
+        address manager_,
         address publisher_,
         uint256 assetId_
     ) external;

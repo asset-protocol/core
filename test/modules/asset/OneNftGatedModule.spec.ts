@@ -1,6 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers"
-import { AssetHub, NftAssetGatedModule__factory } from "../../../typechain-types"
-import { DeployCtx, deployContracts, deployer, testErc1155, testErc721, testToken, user, user3 } from "../../setup.spec"
+import { AssetHub, OneNftAssetGatedModule__factory } from "../../../typechain-types"
+import { DeployCtx, deployContracts, deployer, hubManager, testErc1155, testErc721, testToken, user, user3 } from "../../setup.spec"
 import { AbiCoder, ZeroAddress } from 'ethers'
 import { ZERO_DATA } from "../../contants"
 import { expect } from "chai"
@@ -33,7 +33,7 @@ async function ceateAssetWithGated(
   return assetId
 }
 
-describe("Aesst gated with NFT gated module", async () => {
+describe("Aesst gated with ONE NFT gated module", async () => {
   let cts: DeployCtx = {} as any
   let assetHub: AssetHub
   let nftGatedModule: string
@@ -41,8 +41,8 @@ describe("Aesst gated with NFT gated module", async () => {
     cts = await loadFixture(deployContracts)
     assetHub = cts.assetHub.connect(user)
 
-    const nftGated = await new NftAssetGatedModule__factory(deployer).deploy()
-    await nftGated.initialize(await assetHub.getAddress())
+    const nftGated = await new OneNftAssetGatedModule__factory(deployer).deploy()
+    await nftGated.initialize(await hubManager.getAddress())
     nftGatedModule = await nftGated.getAddress()
   })
 

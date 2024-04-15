@@ -20,7 +20,8 @@ const DEPLOYER_PRIVATEKEY = vars.get("DEPLOYER_PRIVATEKEY", "")
 const APIKEY_polygonMumbai = vars.get("APIKEY_polygonMumbai", "")
 
 const OPSepolia_RPC = vars.get("OPSEPOLIA_RPC", "")
-const APIKEY_opSepolia = vars.get("APIKEY_opSepolia", "")
+const APIKEY_baseSepolia = vars.get("APIKEY_baseSepolia", "")
+const APIKEY_polygonAmoy = vars.get("APIKEY_polygonAmoy", "")
 
 const NETWORK = vars.get("DEFAULT_NETWORK", "hardhat")
 
@@ -29,6 +30,10 @@ const config: HardhatUserConfig = {
   defaultNetwork: NETWORK,
   networks: {
     hardhat: {},
+    "polygonAmoy": {
+      url: "https://rpc-amoy.polygon.technology",
+      accounts: [DEPLOYER_PRIVATEKEY]
+    },
     "polygonMumbai": {
       url: "https://rpc-mumbai.polygon.technology",
       accounts: [DEPLOYER_PRIVATEKEY]
@@ -41,15 +46,24 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       polygonMumbai: APIKEY_polygonMumbai,
-      opSepolia: APIKEY_opSepolia
+      baseSepolia: APIKEY_baseSepolia,
+      polygonAmoy: APIKEY_polygonAmoy
     },
     customChains: [
       {
-        network: "opSepolia",
-        chainId: 11155420,
+        network: "baseSepolia",
+        chainId: 84532,
         urls: {
-          apiURL: "https://api-sepolia-optimism.etherscan.io/api",
-          browserURL: "https://sepolia-optimism.etherscan.io"
+          apiURL: "https://sepolia.base.org",
+          browserURL: "https://sepolia-explorer.base.org"
+        }
+      },
+      {
+        network: "polygonAmoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/AMOY_TESTNET",
+          browserURL: "https://www.oklink.com/amoy"
         }
       }
     ]
@@ -58,7 +72,7 @@ const config: HardhatUserConfig = {
     path: './abi',
     runOnCompile: true,
     flat: true,
-    only: ['AssetHub', "TokenGlobalModule","IERC20", "IContractMetadata", "TokenCollectModule", "NftAssetGatedModule"],
+    only: ['AssetHub', "TokenGlobalModule", "IERC20", "IContractMetadata", "TokenCollectModule", "NftAssetGatedModule"],
     spacing: 2,
   },
 };

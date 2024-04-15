@@ -48,7 +48,12 @@ library AssetHubLogic {
             );
         }
         AssetNFTStorage storage $ = Storage.getAssetStorage();
-        address collectNFT = _deployCollectNFT(Storage.getCollectNFTImpl(), assetId, publisher);
+        address collectNFT = _deployCollectNFT(
+            manager,
+            Storage.getCollectNFTImpl(),
+            assetId,
+            publisher
+        );
         $._assets[assetId].collectNFT = collectNFT;
         emitAssetCreated(assetId, publisher, $._assets[assetId], data);
 
@@ -186,6 +191,7 @@ library AssetHubLogic {
     }
 
     function _deployCollectNFT(
+        address manager,
         address collectNFTImpl,
         uint256 assetId,
         address publisher
@@ -201,7 +207,13 @@ library AssetHubLogic {
         string memory collectNFTSymbol = string(
             abi.encodePacked(Strings.toString(assetId), Constants.COLLECT_NFT_SYMBOL_SUFFIX)
         );
-        ICollectNFT(collectNFT).initialize(collectNFTName, collectNFTSymbol, publisher, assetId);
+        ICollectNFT(collectNFT).initialize(
+            collectNFTName,
+            collectNFTSymbol,
+            manager,
+            publisher,
+            assetId
+        );
         return collectNFT;
     }
 

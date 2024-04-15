@@ -17,7 +17,7 @@ describe("Test deploy asset hub by hub creatorNFT", () => {
       admin: deployerAddress,
       name: "TestHUB-creatorNFT",
       collectNft: true,
-      assetCreateModule: ZeroAddress,
+      createModule: ZeroAddress,
     }
     const userHubManager = hubManager.connect(user);
     await expect(userHubManager.deploy(args)).to.be.reverted;
@@ -30,7 +30,7 @@ describe("Test deploy asset hub by hub creatorNFT", () => {
       admin: deployerAddress,
       name: "TestHUB-creatorNFT-user",
       collectNft: true,
-      assetCreateModule: ZeroAddress,
+      createModule: ZeroAddress,
     }
     const userHubManager = hubManager.connect(user);
     await expect(userHubManager.deploy(args)).to.be.not.reverted;

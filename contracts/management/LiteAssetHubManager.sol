@@ -31,7 +31,7 @@ contract LiteAssetHubManager is
     bytes32 private constant HubCreatorNFTLocation =
         0x6379e760cb0bdd76bb584747d291e2b390678acabc2e6dc84a5887a3927f7200;
 
-    event ManagerInitialed(address creatorNFT, address globalModule);
+    event ManagerInitialized(address creatorNFT, address globalModule);
     event GlobalModuleChanged(address globalModule);
     event HubCreatorNFTChanged(address creatorNFT);
 
@@ -89,7 +89,7 @@ contract LiteAssetHubManager is
         __LiteHubManagerBase_init(data);
         _setHubCreatorNFT(hubCreatorNFT_);
         _setGlobalModule(globalModule_);
-        emit ManagerInitialed(hubCreatorNFT_, globalModule_);
+        emit ManagerInitialized(hubCreatorNFT_, globalModule_);
     }
 
     function version() external view virtual override returns (string memory) {

@@ -8,7 +8,7 @@ contract MultipleBeacon {
 
     error BeaconInvalidImplementation(address implementation);
 
-    event Upgraded(address indexed implementation);
+    event MultipleUpgraded(uint index, address indexed implementation);
 
     // keccak256(abi.encode(uint256(keccak256('multiplebeacon.storage.impl')) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant BeaconStorageLocation =
@@ -31,5 +31,6 @@ contract MultipleBeacon {
         }
         BeaconStorage storage $ = getBeaconStorage();
         $._implementations[index] = newImplementation;
+        emit MultipleUpgraded(index, newImplementation);
     }
 }

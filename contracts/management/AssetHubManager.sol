@@ -49,7 +49,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
     bytes32 private constant HubCreatorNFTLocation =
         0xffa88101cd370f699719567569be368264e840ee1b9016e9d5a1dcdab6d1d500;
 
-    event ManagerInitialed(address creatorNFT, address globalModule);
+    event ManagerInitialized(address creatorNFT, address globalModule);
     event AssetHubDeployed(address indexed admin, string name, address assetHub, AssetHubInfo data);
     event GlobalModuleChanged(address globalModule);
     event HubCreatorNFTChanged(address creatorNFT);
@@ -115,7 +115,7 @@ contract AssetHubManager is OwnableUpgradeable, UpgradeableBase, IAssetHubManage
         $.implData = data;
         _setHubCreatorNFT(hubCreatorNFT_);
         _setGlobalModule(globalModule_);
-        emit ManagerInitialed(hubCreatorNFT_, globalModule_);
+        emit ManagerInitialized(hubCreatorNFT_, globalModule_);
     }
 
     function version() external view virtual override returns (string memory) {

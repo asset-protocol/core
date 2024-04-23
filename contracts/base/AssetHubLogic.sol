@@ -11,7 +11,7 @@ import {ICollectModule} from '../interfaces/ICollectModule.sol';
 import {ICreateAssetModule} from '../interfaces/ICreateAssetModule.sol';
 import {IAssetGatedModule} from '../interfaces/IAssetGatedModule.sol';
 import {IAssetHubManager} from '../interfaces/IAssetHubManager.sol';
-import {IGlobalModule} from '../interfaces/IGlobalModule.sol';
+import {IAssetGlobalModule} from '../interfaces/IAssetGlobalModule.sol';
 import {Errors} from '../libs/Errors.sol';
 import {Storage, AssetNFTStorage} from './Storage.sol';
 
@@ -37,7 +37,11 @@ library AssetHubLogic {
         address manager = Storage.getManager();
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
-            IGlobalModule(globalModule).onCreateAsset(publisher, assetId, data);
+            IAssetGlobalModule(globalModule).onCreateAsset(
+                publisher,
+                assetId,
+                data
+            );
         }
         address createAssetModule = Storage.getCreateAssetModule();
         if (createAssetModule != address(0)) {
@@ -87,7 +91,7 @@ library AssetHubLogic {
         DataTypes.Asset storage asset = $._assets[assetId];
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
-            IGlobalModule(globalModule).onUpdate(publisher, assetId);
+            IAssetGlobalModule(globalModule).onUpdateAsset(publisher, assetId);
         }
         _updateAsset(assetId, publisher, data, asset);
     }
@@ -160,7 +164,12 @@ library AssetHubLogic {
 
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
-            IGlobalModule(globalModule).onCollect(assetId, publiser, collector, collectModuleData);
+            IAssetGlobalModule(globalModule).onCollectAsset(
+                assetId,
+                publiser,
+                collector,
+                collectModuleData
+            );
         }
 
         if (collectModule != address(0)) {
@@ -265,7 +274,7 @@ library AssetHubLogic {
         emit Events.AssetUpdated(assetId, data);
     }
 
-    function getGlobalModule(address manager) internal returns (address) {
+    function getGlobalModule(address manager) internal view returns (address) {
         return IAssetHubManager(manager).globalModule();
     }
 }

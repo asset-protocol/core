@@ -3,8 +3,10 @@ import { IgnitionModuleBuilder } from '@nomicfoundation/ignition-core';
 import { Contracts } from "./contracts";
 import { AssetHubImplModule, OneCollectNFTImplModule, OneFeeCollectModule, OneNftAssetGatedModule, OneTokenCollectModule } from "./modulesImpl";
 import { assethubCreatorNFTModule } from "./assethubCreatorNft";
-import tokenGlobalModuleModule from "./tokenGlobalModule";
 import { ZeroAddress } from "ethers";
+import { CurationModule } from "./curation";
+import { TokenGlobalModuleWithInit } from "./tokenGlobalModule";
+import TestToken from "./TestToken";
 
 export const LiteAssetHubManagerModule = buildModule(Contracts.LiteAssetHubManager, (m) => {
   const impl = m.contract(Contracts.LiteAssetHubManager, [], {
@@ -23,7 +25,9 @@ export const callLiteAssetHubManagerInit = (m: IgnitionModuleBuilder) => {
   const { oneTokenCollectModule } = m.useModule(OneTokenCollectModule(liteManager));
   const { oneNftAssetGatedModule } = m.useModule(OneNftAssetGatedModule(liteManager));
   const { creatorNFT } = m.useModule(assethubCreatorNFTModule);
-  const { tokenGlobalModule } = m.useModule(tokenGlobalModuleModule);
+  const { testToken } = m.useModule(TestToken);
+  const { tokenGlobalModule } = m.useModule(TokenGlobalModuleWithInit(liteManager, testToken));
+  const { curation } = m.useModule(CurationModule("Asset Curation", "AC", liteManager));
   m.call(liteManager, "initialize", [[
     assetHubImpl,
     ZeroAddress, // create module
@@ -31,7 +35,7 @@ export const callLiteAssetHubManagerInit = (m: IgnitionModuleBuilder) => {
     oneFeeCollectModule,
     oneTokenCollectModule,
     oneNftAssetGatedModule
-  ], creatorNFT, tokenGlobalModule]);
+  ], creatorNFT, tokenGlobalModule, curation]);
   m.call(creatorNFT, "airdrop", [[m.getAccount(0)]]);
   return {
     liteManager,
@@ -39,6 +43,8 @@ export const callLiteAssetHubManagerInit = (m: IgnitionModuleBuilder) => {
     creatorNFT,
     oneFeeCollectModule,
     oneTokenCollectModule,
-    oneNftAssetGatedModule
+    oneNftAssetGatedModule,
+    curation,
+    testToken
   };
 }

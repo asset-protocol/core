@@ -1,12 +1,13 @@
 import { ethers, ignition } from 'hardhat';
 import "@openzeppelin/hardhat-upgrades";
-import { AssetHub, AssetHubLogic__factory, AssetHubManager__factory, Events, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, TokenGlobalModule, AssetHubLogic, LiteAssetHubManager, AssetHubCreatorNFT } from "../typechain-types";
+import { AssetHub, AssetHubLogic__factory, Events, TestERC1155, TestERC1155__factory, TestERC721, TestERC721__factory, TestToken, TestToken__factory, TokenGlobalModule, AssetHubLogic, LiteAssetHubManager, AssetHubCreatorNFT, Curation } from "../typechain-types";
 import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
 import { AssetHubLibraryAddresses } from '../typechain-types/factories/contracts/AssetHub__factory';
 import liteManagerModule from '../ignition/modules/deploy-lite-manager';
 import { Contracts } from '../ignition/modules/core/contracts';
 import { LiteHubInfoStruct } from '../typechain-types/contracts/management/LiteAssetHubManager';
+import TestTokenModule from '../ignition/modules/core/TestToken';
 
 export let accounts: Signer[];
 export let deployer: Signer;
@@ -24,6 +25,7 @@ export let hubManager: LiteAssetHubManager;
 export let tokenGlobalModule: TokenGlobalModule;
 export let creatorNFT: AssetHubCreatorNFT;
 export let modules: LiteHubInfoStruct;
+export let assetCuration: Curation;
 
 export type DeployCtx = {
   assetHub: AssetHub
@@ -31,18 +33,19 @@ export type DeployCtx = {
 }
 
 export async function deployContracts(): Promise<DeployCtx> {
-  const tokenImpl = await new TestToken__factory(deployer).deploy("EmptyToken", "ET")
   const hubAddress = await hubManager.deploy.staticCall({
     name: "TestHUb",
     admin: deployerAddress,
     createModule: ZeroAddress
   })
-  const res = await hubManager.deploy({
+  await hubManager.deploy({
     name: "TestHUb",
     admin: deployerAddress,
     createModule: ZeroAddress
   });
   const assetHub = await ethers.getContractAt("AssetHub", hubAddress, deployer);
+  const { testToken } = await ignition.deploy(TestTokenModule);
+  const tokenImpl = await ethers.getContractAt(Contracts.TestToken, testToken, deployer);
   return {
     assetHub,
     tokenImpl,
@@ -63,7 +66,6 @@ before(async function () {
 
   testErc721 = await new TestERC721__factory(deployer).deploy("TEST721", "T721")
   testErc1155 = await new TestERC1155__factory(deployer).deploy()
-  testToken = await new TestToken__factory(deployer).deploy("TEST", "TST")
   assetHubLogic = await new AssetHubLogic__factory(deployer).deploy()
   assethubLibs = {
     "contracts/base/AssetHubLogic.sol:AssetHubLogic": await assetHubLogic.getAddress()
@@ -74,16 +76,15 @@ before(async function () {
     creatorNFT: nft,
     oneFeeCollectModule,
     oneNftAssetGatedModule,
-    oneTokenCollectModule } = await ignition.deploy(liteManagerModule)
+    oneTokenCollectModule,
+    testToken: tkn,
+    curation
+  } = await ignition.deploy(liteManagerModule)
   hubManager = await ethers.getContractAt(Contracts.LiteAssetHubManager, liteManager);
+  testToken = await ethers.getContractAt(Contracts.TestToken, tkn);
   tokenGlobalModule = await ethers.getContractAt(Contracts.TokenGlobalModule, gm);
-  await tokenGlobalModule.initialize(hubManager, testToken, deployer, {
-    collectFee: 0,
-    updateFee: 0,
-    createFee: 0
-  });
   creatorNFT = await ethers.getContractAt(Contracts.AssetHubCreatorNFT, nft);
-  await creatorNFT.airdrop([deployerAddress]);
+  assetCuration = await ethers.getContractAt(Contracts.Curation, curation);
   modules = {
     tokenCollectModule: await oneTokenCollectModule.getAddress(),
     feeCollectModule: await oneFeeCollectModule.getAddress(),

@@ -2,19 +2,19 @@
 pragma solidity ^0.8.20;
 import {DataTypes} from '../libs/DataTypes.sol';
 
-interface IGlobalModule {
+interface IAssetGlobalModule {
     function onCreateAsset(
         address publisher,
         uint256 assetId,
         DataTypes.AssetCreateData calldata data
-    ) external;
+    ) external payable;
 
-    function onCollect(
+    function onCollectAsset(
         uint256 assetId,
         address publiser,
         address collector,
         bytes calldata data
-    ) external;
+    ) external payable;
 
-    function onUpdate(address publisher, uint256 assetId) external;
+    function onUpdateAsset(address publisher, uint256 assetId) external payable;
 }

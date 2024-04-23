@@ -5,6 +5,7 @@ import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {ContextUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
 import {IAssetHub} from '../../interfaces/IAssetHub.sol';
 import {IAssetHubManager} from '../../interfaces/IAssetHubManager.sol';
+import {IOwnable} from '../../interfaces/IOwnable.sol';
 import {StorageSlots} from './StorageSlots.sol';
 import 'hardhat/console.sol';
 
@@ -14,6 +15,7 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
     error NotHubOwner();
 
     function __RequiredManager_init(address manager) internal onlyInitializing {
+        require(manager != address(0), 'Manager address cannot be zero');
         StorageSlots.setManager(manager);
     }
 
@@ -25,12 +27,12 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
     }
 
     modifier onlyHub() {
-        _checkHub();
+        _checkHub(_msgSender());
         _;
     }
 
-    function _checkHub() internal view {
-        bool isHub = IAssetHubManager(StorageSlots.getManager()).isHub(_msgSender());
+    function _checkHub(address hub) internal view {
+        bool isHub = IAssetHubManager(StorageSlots.getManager()).isHub(hub);
         if (!isHub) {
             revert NotHub();
         }
@@ -46,8 +48,17 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
     }
 
     function _checkAssetOwner(address hub, uint256 assetId, address account) internal view {
+        _checkHub(hub);
         if (IAssetHub(hub).assetPublisher(assetId) != account) {
             revert NotHubOwner();
         }
+    }
+
+    function _globalModule() internal view returns (address) {
+        return IAssetHubManager(StorageSlots.getManager()).globalModule();
+    }
+
+    function _managerOwner() internal view returns (address) {
+        return IOwnable(StorageSlots.getManager()).owner();
     }
 }

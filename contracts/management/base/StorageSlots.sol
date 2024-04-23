@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-struct LiteHubInfo {
-    address createModule;
-    address tokenCollectModule;
-    address feeCollectModule;
-    address nftGatedModule;
-}
+import {LiteHubInfo} from '../../interfaces/IAssetHubManager.sol';
 
 struct LiteHubStorage {
     address collectNFT;

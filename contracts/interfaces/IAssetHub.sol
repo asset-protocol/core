@@ -16,7 +16,7 @@ interface IAssetHub {
     /// @notice create a new asset
     /// @param data the data of the asset
     /// @return the id of the asset
-    function create(DataTypes.AssetCreateData calldata data) external returns (uint256);
+    function create(DataTypes.AssetCreateData calldata data) external payable returns (uint256);
 
     /// @notice collect to an asset
     /// @param assetId the id of the asset

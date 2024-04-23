@@ -1,8 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./contracts";
 import { ZeroAddress } from "ethers";
-import tokenGlobalModuleModule from './tokenGlobalModule';
-import { assethubCreatorNFTModule } from "./assethubCreatorNft";
 import { LiteAssetHubManagerModule } from "./liteManager";
 
 export const assethubFactoryModule = buildModule(Contracts.AssetHubFactory, (m) => {

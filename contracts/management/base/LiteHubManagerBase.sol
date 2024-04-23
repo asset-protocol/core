@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 import {MultipleBeacon} from '../../upgradeability/MultipleBeacon.sol';
 import {MultipleBeaconProxy} from '../../upgradeability/MultipleBeaconProxy.sol';
-import {StorageSlots, LiteHubStorage, LiteHubInfo} from './StorageSlots.sol';
-import {HubCreateData} from '../../interfaces/IAssetHubManager.sol';
+import {StorageSlots, LiteHubStorage} from './StorageSlots.sol';
+import {HubCreateData, IAssetHubManagerEvents, LiteHubInfo} from '../../interfaces/IAssetHubManager.sol';
 import {IAssetHub} from '../../interfaces/IAssetHub.sol';
 
 struct MangerInitData {
@@ -16,7 +16,7 @@ struct MangerInitData {
     address nftGatedModule;
 }
 
-contract LiteHubManagerBase is MultipleBeacon {
+contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
     error NoAssetHubImplementation();
 
     struct HubModulesStorage {
@@ -30,8 +30,6 @@ contract LiteHubManagerBase is MultipleBeacon {
     // keccak256(abi.encode(uint256(keccak256('litehubmanager.storage.modules')) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant ModuleStorageLocation =
         0x766d2447ffa670bd44ca6bd3f205f098585331965b3439f5d4d562261485c100;
-
-    event AssetHubDeployed(address indexed admin, string name, address assetHub, LiteHubInfo data);
 
     function getModulesStorage() internal pure returns (HubModulesStorage storage $) {
         assembly {
@@ -62,6 +60,10 @@ contract LiteHubManagerBase is MultipleBeacon {
 
     function assetHubInfoByName(string calldata name) external view returns (LiteHubInfo memory) {
         return StorageSlots.getLiteHubByName(name);
+    }
+
+    function _isHub(address hub) internal view returns (bool) {
+        return StorageSlots.hasHub(hub);
     }
 
     function _createHub(HubCreateData calldata data) internal virtual returns (address) {

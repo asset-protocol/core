@@ -3,9 +3,9 @@
     "compile": "hardhat compile",
     "test": "hardhat test --network hardhat --verbose",
     "gen:go": "hardhat export-abi --no-compile && abigen --abi=abi/AssetHub.json --pkg=assethub --out=asset-go/assethub.go",
-    "deploy-manager": "hardhat ignition deploy ignition/modules/deploy-full-manager.ts --network polygonAmoy --verify",
-    "deploy-lite":"hardhat ignition deploy ignition/modules/deploy-lite-manager.ts --network polygonAmoy --verify",
-    "newhub": "hardhat ignition deploy ignition/modules/deploy-newhub.ts --network polygonAmoy"
+    "deploy-manager": "hardhat ignition deploy ignition/modules/deploy-full-manager.ts --network baseSepolia --verify",
+    "deploy-lite":"hardhat ignition deploy ignition/modules/deploy-lite-manager.ts --network baseSepolia --verify",
+    "newhub": "hardhat ignition deploy ignition/modules/deploy-newhub.ts --network baseSepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "2.0.0",

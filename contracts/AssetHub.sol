@@ -48,13 +48,13 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
         return owner();
     }
 
-    function globalModule() external returns (address) {
+    function globalModule() external view returns (address) {
         return AssetHubLogic.getGlobalModule(Storage.getManager());
     }
 
     function create(
         DataTypes.AssetCreateData calldata data
-    ) external override(IAssetHub) whenNotPaused returns (uint256) {
+    ) external payable override(IAssetHub) whenNotPaused returns (uint256) {
         address pub = data.publisher;
         if (pub == address(0)) {
             pub = _msgSender();
@@ -67,7 +67,7 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
     function update(
         uint256 assetId,
         DataTypes.AssetUpdateData calldata data
-    ) external whenNotPaused {
+    ) external payable whenNotPaused {
         _requireAssetPublisher(assetId, _msgSender());
         AssetHubLogic.UpdateAsset(Storage.getManager(), assetId, _ownerOf(assetId), data);
     }

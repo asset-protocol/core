@@ -7,10 +7,24 @@ struct HubCreateData {
     address createModule;
 }
 
-interface IAssetHubManager {
+struct LiteHubInfo {
+    address createModule;
+    address tokenCollectModule;
+    address feeCollectModule;
+    address nftGatedModule;
+}
+
+interface IAssetHubManagerEvents {
+    event AssetHubDeployed(address indexed admin, string name, address assetHub, LiteHubInfo data);
+    event GlobalModuleChanged(address globalModule);
+    event HubCreatorNFTChanged(address creatorNFT);
+    event CurationUpdated(address curation);
+}
+
+interface IAssetHubManager is IAssetHubManagerEvents {
     function deploy(HubCreateData calldata data) external returns (address);
 
-    function globalModule() external returns (address);
+    function globalModule() external view returns (address);
 
     function isHub(address hub) external view returns (bool);
 }

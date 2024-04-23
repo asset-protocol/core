@@ -23,7 +23,7 @@ contract OneCollectNFT is ERC721Upgradeable, RequiredManagerUpgradeable, ICollec
     ) external initializer {
         __ERC721_init(name_, symbol_);
         __RequiredManager_init(manager_);
-        _checkHub();
+        _checkHub(_msgSender());
         _assetId = assetId_;
         _publisher = publisher_;
         _hub = msg.sender;

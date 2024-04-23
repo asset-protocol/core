@@ -17,11 +17,11 @@ if (proxyURL) {
 }
 
 const DEPLOYER_PRIVATEKEY = vars.get("DEPLOYER_PRIVATEKEY", "")
-const APIKEY_polygonMumbai = vars.get("APIKEY_polygonMumbai", "")
+const APIKEY_polygonMumbai = vars.get("APIKEY_POLYGON_MUMBAI", "")
 
 const OPSepolia_RPC = vars.get("OPSEPOLIA_RPC", "")
-const APIKEY_baseSepolia = vars.get("APIKEY_baseSepolia", "")
-const APIKEY_polygonAmoy = vars.get("APIKEY_polygonAmoy", "")
+const APIKEY_baseSepolia = vars.get("APIKEY_BASE_SEPOLIA", "")
+const APIKEY_polygonAmoy = vars.get("APIKEY_POLYGON_AMOY", "")
 
 const NETWORK = vars.get("DEFAULT_NETWORK", "hardhat")
 
@@ -36,6 +36,10 @@ const config: HardhatUserConfig = {
     },
     "polygonMumbai": {
       url: "https://rpc-mumbai.polygon.technology",
+      accounts: [DEPLOYER_PRIVATEKEY]
+    },
+    "baseSepolia": {
+      url: "https://sepolia.base.org",
       accounts: [DEPLOYER_PRIVATEKEY]
     },
     "opSepolia": {
@@ -54,8 +58,8 @@ const config: HardhatUserConfig = {
         network: "baseSepolia",
         chainId: 84532,
         urls: {
-          apiURL: "https://sepolia.base.org",
-          browserURL: "https://sepolia-explorer.base.org"
+          apiURL: "https://api-sepolia.basescan.org/api",
+          browserURL: "https://sepolia.basescan.org/"
         }
       },
       {
@@ -72,7 +76,7 @@ const config: HardhatUserConfig = {
     path: './abi',
     runOnCompile: true,
     flat: true,
-    only: ['AssetHub', "TokenGlobalModule", "IERC20", "IContractMetadata", "TokenCollectModule", "NftAssetGatedModule"],
+    only: ['AssetHub', "TokenGlobalModule", "Curation", "IERC20", "IContractMetadata", "TokenCollectModule", "NftAssetGatedModule"],
     spacing: 2,
   },
 };

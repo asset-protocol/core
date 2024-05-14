@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {ERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
+import {ERC721URIStorageUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol';
 import {UpgradeableBase} from '../upgradeability/UpgradeableBase.sol';
 import {WhitelistBase} from '../base/WhitlistBase.sol';
 
@@ -10,7 +10,7 @@ contract AssetHubCreatorNFT is
     OwnableUpgradeable,
     UpgradeableBase,
     WhitelistBase,
-    ERC721Upgradeable
+    ERC721URIStorageUpgradeable
 {
     uint256 private _tokenCount;
 
@@ -44,6 +44,10 @@ contract AssetHubCreatorNFT is
             _tokenCount++;
         }
         return tokenId;
+    }
+
+    function setTokenURI(uint256 tokenId, string memory _tokenURI) external virtual onlyOwner {
+        return _setTokenURI(tokenId, _tokenURI);
     }
 
     function airdrop(address[] calldata accounts) external virtual onlyOwner {

@@ -32,7 +32,7 @@ describe("Create Asset", async () => {
   it("should create asset", async function () {
     assetHub = cts.assetHub.connect(user)
     await expect(assetHub.create({
-      publisher: ZeroAddress,
+      publisher: user,
       contentURI: "https://www.google.com",
       collectModule: ZeroAddress,
       collectModuleInitData: ZERO_DATA,

@@ -37,11 +37,7 @@ library AssetHubLogic {
         address manager = Storage.getManager();
         address globalModule = IAssetHubManager(manager).globalModule();
         if (globalModule != address(0)) {
-            IAssetGlobalModule(globalModule).onCreateAsset(
-                publisher,
-                assetId,
-                data
-            );
+            IAssetGlobalModule(globalModule).onCreateAsset(publisher, assetId, data);
         }
         address createAssetModule = Storage.getCreateAssetModule();
         if (createAssetModule != address(0)) {

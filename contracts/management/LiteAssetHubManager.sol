@@ -51,7 +51,7 @@ contract LiteAssetHubManager is
     }
 
     function version() external view virtual override returns (string memory) {
-        return '1.0.0';
+        return '0.0.5';
     }
 
     function isHub(address hub) external view returns (bool) {
@@ -69,6 +69,16 @@ contract LiteAssetHubManager is
 
     function creatorNFT() external view returns (address) {
         return ManagerSlots.getHubCreatorNFT();
+    }
+
+    function canCreateHub(address account) external view returns (bool, string memory) {
+        address nft = ManagerSlots.getHubCreatorNFT();
+        bool hasNFT = (nft == address(0) || IERC721(nft).balanceOf(account) >= 0);
+        if (hasNFT) {
+            return (true, '');
+        } else {
+            return (false, 'You must own the Creator NFT to create a hub');
+        }
     }
 
     function setHubCreatorNFT(address creatorNFT_) public onlyOwner {

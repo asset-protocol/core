@@ -58,8 +58,24 @@ contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
         return StorageSlots.getLiteHub(hub);
     }
 
+    function hubDefaultModules() external view returns (HubModulesStorage memory) {
+        HubModulesStorage storage $ = getModulesStorage();
+        return
+            HubModulesStorage({
+                tokenCreateModule: $.tokenCreateModule,
+                collectNFT: $.collectNFT,
+                feeCollectModule: $.feeCollectModule,
+                tokenCollectModule: $.tokenCollectModule,
+                nftGatedModule: $.nftGatedModule
+            });
+    }
+
     function assetHubInfoByName(string calldata name) external view returns (LiteHubInfo memory) {
         return StorageSlots.getLiteHubByName(name);
+    }
+
+    function hasNamedHub(string calldata name) external view returns (bool) {
+        return StorageSlots.hasNamedHub(name);
     }
 
     function _isHub(address hub) internal view returns (bool) {

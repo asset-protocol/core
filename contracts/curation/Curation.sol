@@ -48,7 +48,7 @@ contract Curation is
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner {}
 
     function version() external view virtual override returns (string memory) {
-        return '0.0.1';
+        return '0.0.3';
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
@@ -100,12 +100,12 @@ contract Curation is
 
     function approveAssetBatch(
         uint256 id,
-        address hub,
+        address[] calldata hubs,
         uint256[] calldata assetIds,
         AssetApproveStatus[] calldata status
     ) external {
         for (uint i = 0; i < assetIds.length; i++) {
-            approveAsset(id, hub, assetIds[i], status[i]);
+            approveAsset(id, hubs[i], assetIds[i], status[i]);
         }
     }
 
@@ -157,6 +157,29 @@ contract Curation is
             }
         }
         emit AssetsRemoved(curationId, hubs, assetIds);
+    }
+
+    function assetsStatus(
+        uint256 curationId,
+        address[] calldata hubs,
+        uint256[] calldata assetIds
+    ) external view returns (AssetApproveStatus[] memory) {
+        CurationStorage storage $ = StorageSlot.getCurationStorage();
+        AssetInfo[] storage assets = $._curations[curationId].assets;
+        if (assets.length == 0 || hubs.length == 0) {
+            return new AssetApproveStatus[](0);
+        }
+        require(hubs.length == assetIds.length, 'length not match');
+        AssetApproveStatus[] memory result = new AssetApproveStatus[](hubs.length);
+        for (uint i = 0; i < hubs.length; i++) {
+            for (uint j = 0; j < assets.length; j++) {
+                if (assets[j].hub == hubs[i] && assets[j].assetId == assetIds[i]) {
+                    result[i] = assets[j].status;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     function _checkAssetExists(address hub, uint256 assetId) internal view {

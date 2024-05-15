@@ -28,11 +28,16 @@ contract Curation is
         uint8 status,
         CurationAsset[] assets
     );
-    event CurationUpdated(uint256 indexed curationId, string curationURI, uint8 status);
+    event CurationUpdated(
+        uint256 indexed curationId,
+        string curationURI,
+        uint8 status,
+        uint256 expiry
+    );
     event AssetsAdded(uint256 indexed curationId, CurationAsset[] assets);
     event AssetsRemoved(uint256 indexed curationId, address[] hubs, uint256[] assetIds);
 
-    error NotAssetPublisher(address s);
+    error NotAssetPublisher(address account);
 
     function initialize(
         string memory name,
@@ -59,6 +64,7 @@ contract Curation is
     function create(
         string memory curationURI,
         uint8 status,
+        uint256 expiry,
         CurationAsset[] calldata assets
     ) external payable virtual returns (uint256) {
         AssetInfo[] memory assetInfos = new AssetInfo[](assets.length);
@@ -72,7 +78,7 @@ contract Curation is
             });
         }
         address publisher = _msgSender();
-        uint256 tokenId = StorageSlot.createCuration(curationURI, status, assetInfos);
+        uint256 tokenId = StorageSlot.createCuration(curationURI, status, expiry, assetInfos);
         if (_globalModule() != address(0)) {
             ICurationGlobalModule(_globalModule()).onCurationCreate(
                 tokenId,
@@ -117,14 +123,36 @@ contract Curation is
         _checkTokenOwner(curationId);
         CurationStorage storage $ = StorageSlot.getCurationStorage();
         $._curations[curationId].status = status;
-        emit CurationUpdated(curationId, $._curations[curationId].tokenURI, status);
+        emit CurationUpdated(
+            curationId,
+            $._curations[curationId].tokenURI,
+            status,
+            $._curations[curationId].expiry
+        );
     }
 
     function setCurationURI(uint256 curationId, string memory curationURI) external {
         _checkTokenOwner(curationId);
         CurationStorage storage $ = StorageSlot.getCurationStorage();
         $._curations[curationId].tokenURI = curationURI;
-        emit CurationUpdated(curationId, curationURI, $._curations[curationId].status);
+        emit CurationUpdated(
+            curationId,
+            curationURI,
+            $._curations[curationId].status,
+            $._curations[curationId].expiry
+        );
+    }
+
+    function setExpiry(uint256 curationId, uint64 expiry) external {
+        _checkTokenOwner(curationId);
+        CurationStorage storage $ = StorageSlot.getCurationStorage();
+        $._curations[curationId].expiry = expiry;
+        emit CurationUpdated(
+            curationId,
+            $._curations[curationId].tokenURI,
+            $._curations[curationId].status,
+            expiry
+        );
     }
 
     function addAssets(uint256 curationId, CurationAsset[] calldata assets) external {
@@ -166,6 +194,8 @@ contract Curation is
     ) external view returns (AssetApproveStatus[] memory) {
         CurationStorage storage $ = StorageSlot.getCurationStorage();
         AssetInfo[] storage assets = $._curations[curationId].assets;
+        uint256 expire = $._curations[curationId].expiry;
+        bool isExpired = expire > 0 && expire < block.timestamp;
         if (assets.length == 0 || hubs.length == 0) {
             return new AssetApproveStatus[](0);
         }
@@ -174,7 +204,11 @@ contract Curation is
         for (uint i = 0; i < hubs.length; i++) {
             for (uint j = 0; j < assets.length; j++) {
                 if (assets[j].hub == hubs[i] && assets[j].assetId == assetIds[i]) {
-                    result[i] = assets[j].status;
+                    if (isExpired && assets[j].status == AssetApproveStatus.Approved) {
+                        result[i] = AssetApproveStatus.Expired;
+                    } else {
+                        result[i] = assets[j].status;
+                    }
                     break;
                 }
             }

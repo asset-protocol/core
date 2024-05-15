@@ -12,12 +12,14 @@ struct CurationData {
     AssetInfo[] assets;
     string tokenURI;
     uint8 status;
+    uint256 expiry;
 }
 
 enum AssetApproveStatus {
     Pending,
     Approved,
-    Rejected
+    Rejected,
+    Expired
 }
 
 struct CurationStorage {
@@ -59,6 +61,7 @@ library StorageSlot {
     function createCuration(
         string memory curationURI,
         uint8 status,
+        uint256 expiry,
         AssetInfo[] memory assets
     ) internal returns (uint256) {
         CurationStorage storage $ = getCurationStorage();
@@ -66,6 +69,7 @@ library StorageSlot {
         CurationData storage curation = $._curations[tokenId];
         curation.tokenURI = curationURI;
         curation.status = status;
+        curation.expiry = expiry;
         for (uint i = 0; i < assets.length; i++) {
             curation.assets.push(assets[i]);
         }

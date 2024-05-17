@@ -1,8 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./core/contracts";
 
-export default buildModule("UpgradeCuration_V2", (m) => {
-  const curation = m.contractAt(Contracts.Curation, "0xBdD18503ae060FB7802705AAC8b7E4a1B63463eD", {
+export default buildModule("UpgradeCuration_V5", (m) => {
+  const curation = m.contractAt(Contracts.Curation, "0x8e9172e7D9f08E601168C79c0A43930c4304c483", {
     id: "curationProxy"
   });
 

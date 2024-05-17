@@ -14,9 +14,9 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
     error NotHub();
     error NotHubOwner();
 
-    function __RequiredManager_init(address manager) internal onlyInitializing {
-        require(manager != address(0), 'Manager address cannot be zero');
-        StorageSlots.setManager(manager);
+    function __RequiredManager_init(address manager_) internal onlyInitializing {
+        require(manager_ != address(0), 'Manager address cannot be zero');
+        StorageSlots.setManager(manager_);
     }
 
     modifier onlyManager() {
@@ -29,6 +29,10 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
     modifier onlyHub() {
         _checkHub(_msgSender());
         _;
+    }
+
+    function manager() external view returns (address) {
+        return StorageSlots.getManager();
     }
 
     function _checkHub(address hub) internal view {

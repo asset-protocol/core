@@ -46,12 +46,10 @@ describe('Test Curation', () => {
         {
           assetId: asset1,
           hub: hubAddress,
-          order: 0n,
         },
         {
           assetId: asset2,
           hub: hubAddress,
-          order: 0n,
         },
       ])
     ).to.not.be.reverted;
@@ -63,17 +61,14 @@ describe('Test Curation', () => {
         {
           assetId: asset1,
           hub: hubAddress,
-          order: 0n,
         },
         {
           assetId: hub2Asset1,
           hub: assetHub2Address,
-          order: 0n,
         },
         {
           assetId: asset1,
           hub: hubAddress,
-          order: 0n,
         },
       ])
     ).to.not.be.reverted;
@@ -137,12 +132,10 @@ describe('Test Curation', () => {
         {
           assetId: asset1,
           hub: hubAddress,
-          order: 0n,
         },
         {
           assetId: hub2Asset1,
           hub: assetHub2Address,
-          order: 0n,
         },
       ])
     ).to.be.reverted;
@@ -155,12 +148,10 @@ describe('Test Curation', () => {
       {
         assetId: asset1,
         hub: hubAddress,
-        order: 0n,
       },
       {
         assetId: hub2Asset1,
         hub: assetHub2Address,
-        order: 0n,
       },
     ]);
     const curation = await assetCuration.curationData(curationId);
@@ -237,17 +228,34 @@ describe('Test Curation', () => {
     expect(statuses[1]).to.equal(AssetRejected);
   });
 
+  it('The asset approved status should be expired after update expired curation expiry', async () => {
+    const ts = await time.latest();
+    const curationId = await createTestCuration(BigInt(ts + 24 * 60 * 60));
+    await expect(
+      assetCuration.connect(user).approveAsset(curationId, hubAddress, asset1, AssetApproved)
+    ).to.not.be.reverted;
+    await time.increase(24 * 60 * 60 * 2);
+    const ts2 = await time.latest();
+    await assetCuration.setExpiry(curationId, BigInt(ts2 + 24 * 60 * 60));
+    const statuses = await assetCuration.assetsStatus(
+      curationId,
+      [hubAddress, assetHub2Address],
+      [asset1, hub2Asset1]
+    );
+    expect(statuses.length).to.equal(2);
+    expect(statuses[0]).to.equal(AssetExpired);
+    expect(statuses[1]).to.equal(AssetApproving);
+  });
+
   async function createTestCuration(expired?: bigint) {
     const createData = [
       {
         assetId: asset1,
         hub: hubAddress,
-        order: 0n,
       },
       {
         assetId: hub2Asset1,
         hub: assetHub2Address,
-        order: 0n,
       },
     ];
     const curationId = await assetCuration.create.staticCall(

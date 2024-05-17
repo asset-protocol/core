@@ -19,13 +19,15 @@ contract Curation is
         uint256 curationId,
         address hub,
         uint256 assetId,
-        AssetApproveStatus status
+        AssetApproveStatus status,
+        uint256 expiry
     );
     event CurationCreated(
         address indexed publisher,
         uint256 curationId,
         string curationURI,
         uint8 status,
+        uint256 expiry,
         CurationAsset[] assets
     );
     event CurationUpdated(
@@ -53,7 +55,7 @@ contract Curation is
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner {}
 
     function version() external view virtual override returns (string memory) {
-        return '0.0.3';
+        return '0.0.4';
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
@@ -73,8 +75,8 @@ contract Curation is
             assetInfos[i] = AssetInfo({
                 hub: asset.hub,
                 assetId: asset.assetId,
-                order: asset.order,
-                status: AssetApproveStatus.Pending
+                status: AssetApproveStatus.Pending,
+                expiry: 0
             });
         }
         address publisher = _msgSender();
@@ -89,7 +91,7 @@ contract Curation is
             );
         }
         _mint(publisher, tokenId);
-        emit CurationCreated(publisher, tokenId, curationURI, status, assets);
+        emit CurationCreated(publisher, tokenId, curationURI, status, expiry, assets);
         return tokenId;
     }
 
@@ -100,8 +102,10 @@ contract Curation is
         AssetApproveStatus status
     ) public {
         _checkAssetOwner(hub, assetId, _msgSender());
-        StorageSlot.approveAsset(id, hub, assetId, status);
-        emit AssetApproved(id, hub, assetId, status);
+        (bool res, uint256 expiry) = StorageSlot.approveAsset(id, hub, assetId, status);
+        if (res) {
+            emit AssetApproved(id, hub, assetId, status, expiry);
+        }
     }
 
     function approveAssetBatch(
@@ -115,9 +119,9 @@ contract Curation is
         }
     }
 
-    function curationData(uint256 curationId) external view returns (CurationData memory) {
-        return StorageSlot.getCurationData(curationId);
-    }
+    // function curationData(uint256 curationId) external view returns (CurationData memory) {
+    //     return StorageSlot.getCurationData(curationId);
+    // }
 
     function setStatus(uint256 curationId, uint8 status) external {
         _checkTokenOwner(curationId);
@@ -165,7 +169,7 @@ contract Curation is
                 AssetInfo({
                     hub: asset.hub,
                     assetId: asset.assetId,
-                    order: asset.order,
+                    expiry: 0,
                     status: AssetApproveStatus.Pending
                 })
             );
@@ -192,28 +196,7 @@ contract Curation is
         address[] calldata hubs,
         uint256[] calldata assetIds
     ) external view returns (AssetApproveStatus[] memory) {
-        CurationStorage storage $ = StorageSlot.getCurationStorage();
-        AssetInfo[] storage assets = $._curations[curationId].assets;
-        uint256 expire = $._curations[curationId].expiry;
-        bool isExpired = expire > 0 && expire < block.timestamp;
-        if (assets.length == 0 || hubs.length == 0) {
-            return new AssetApproveStatus[](0);
-        }
-        require(hubs.length == assetIds.length, 'length not match');
-        AssetApproveStatus[] memory result = new AssetApproveStatus[](hubs.length);
-        for (uint i = 0; i < hubs.length; i++) {
-            for (uint j = 0; j < assets.length; j++) {
-                if (assets[j].hub == hubs[i] && assets[j].assetId == assetIds[i]) {
-                    if (isExpired && assets[j].status == AssetApproveStatus.Approved) {
-                        result[i] = AssetApproveStatus.Expired;
-                    } else {
-                        result[i] = assets[j].status;
-                    }
-                    break;
-                }
-            }
-        }
-        return result;
+        return StorageSlot.assetsStatus(curationId, hubs, assetIds);
     }
 
     function _checkAssetExists(address hub, uint256 assetId) internal view {

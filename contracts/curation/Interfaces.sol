@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 struct CurationAsset {
     address hub;
     uint256 assetId;
-    uint order;
 }
 
 interface ICurationGlobalModule {

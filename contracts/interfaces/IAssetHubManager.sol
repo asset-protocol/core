@@ -27,4 +27,6 @@ interface IAssetHubManager is IAssetHubManagerEvents {
     function globalModule() external view returns (address);
 
     function isHub(address hub) external view returns (bool);
+
+    function curation() external view returns (address);
 }

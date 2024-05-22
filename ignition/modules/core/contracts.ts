@@ -30,6 +30,7 @@ export enum Contracts {
   LiteAssetHubManager = "LiteAssetHubManager",
 
   Curation = "Curation",
+  CurationLogic = "CurationLogic",
 
   OneCollectNFT = "OneCollectNFT",
   OneTokenCollectModule = "OneTokenCollectModule",

@@ -3,35 +3,13 @@ pragma solidity ^0.8.20;
 
 import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
 import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
-import {RequiredManagerUpgradeable} from '../../management/base/RequiredManagerUpgradeable.sol';
 import './StorageSlots.sol';
 import './AssetTokenGlobalModule.sol';
 import './CurationTokenGlobalModule.sol';
 
-struct TokenFeeConfig {
-    uint256 createFee;
-    uint256 updateFee;
-    uint256 collectFee;
-}
-
-struct TokenFeeConfigData {
-    bool exist;
-    uint256 createFee;
-    uint256 updateFee;
-    uint256 collectFee;
-}
-
-struct HubTokenFeeConfig {
-    address token;
-    uint256 createFee;
-    uint256 updateFee;
-    uint256 collectFee;
-}
-
 contract TokenGlobalModule is
     CurationTokenGlobalModule,
     AssetTokenGlobalModule,
-    RequiredManagerUpgradeable,
     UpgradeableBase,
     ERC165Upgradeable
 {

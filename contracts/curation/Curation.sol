@@ -7,6 +7,7 @@ import {UpgradeableBase} from '../upgradeability/UpgradeableBase.sol';
 import {IAssetHub} from '../interfaces/IAssetHub.sol';
 import {RequiredManagerUpgradeable} from '../management/base/RequiredManagerUpgradeable.sol';
 import {ICurationGlobalModule, CurationAsset} from './Interfaces.sol';
+import {CurationLogic} from './CurationLogic.sol';
 import './StorageSlot.sol';
 
 contract Curation is
@@ -102,7 +103,7 @@ contract Curation is
         AssetApproveStatus status
     ) public {
         _checkAssetOwner(hub, assetId, _msgSender());
-        (bool res, uint256 expiry) = StorageSlot.approveAsset(id, hub, assetId, status);
+        (bool res, uint256 expiry) = CurationLogic.approveAsset(id, hub, assetId, status);
         if (res) {
             emit AssetApproved(id, hub, assetId, status, expiry);
         }
@@ -119,9 +120,9 @@ contract Curation is
         }
     }
 
-    // function curationData(uint256 curationId) external view returns (CurationData memory) {
-    //     return StorageSlot.getCurationData(curationId);
-    // }
+    function curationData(uint256 curationId) external view returns (CurationData memory) {
+        return StorageSlot.getCurationData(curationId);
+    }
 
     function setStatus(uint256 curationId, uint8 status) external {
         _checkTokenOwner(curationId);
@@ -196,7 +197,7 @@ contract Curation is
         address[] calldata hubs,
         uint256[] calldata assetIds
     ) external view returns (AssetApproveStatus[] memory) {
-        return StorageSlot.assetsStatus(curationId, hubs, assetIds);
+        return CurationLogic.assetsStatus(curationId, hubs, assetIds);
     }
 
     function _checkAssetExists(address hub, uint256 assetId) internal view {

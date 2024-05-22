@@ -1,8 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Contracts } from "./core/contracts";
 
-export default buildModule("UpgradeTokenGlobalModule_V5", (m) => {
-  const tokenGlobalModule = m.contractAt(Contracts.TokenGlobalModule, "0xc9b375297914BF0892DCDcF04D56134375CeE245");
+export default buildModule("UpgradeTokenGlobalModule_V6", (m) => {
+  const tokenGlobalModule = m.contractAt(Contracts.TokenGlobalModule, "0x3Dc8fB2356547C44acEb60461794aE7b9DA70Adb");
   const tokenGlobalModule_next = m.contract(Contracts.TokenGlobalModule, [], {
     id: "tokenGlobalModule_next"
   });

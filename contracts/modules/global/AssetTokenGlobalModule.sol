@@ -6,28 +6,58 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {AssetTokenFeeConfig, StorageSlots, TokenConfig} from './StorageSlots.sol';
 import {IAssetGlobalModule} from '../../interfaces/IAssetGlobalModule.sol';
 import {DataTypes} from '../../libs/DataTypes.sol';
+import {RequiredManagerUpgradeable} from '../../management/base/RequiredManagerUpgradeable.sol';
 
-contract AssetTokenGlobalModule is IAssetGlobalModule {
+struct AssetTokenConfig {
+    bool exist;
+    address token;
+    address recipient;
+    uint256 createFee;
+    uint256 updateFee;
+    uint256 collectFee;
+}
+
+abstract contract AssetTokenGlobalModule is RequiredManagerUpgradeable, IAssetGlobalModule {
     using SafeERC20 for IERC20;
 
-    function setAssetDefaultConfig(AssetTokenFeeConfig calldata feeConfig) external {
+    function setAssetDefaultConfig(
+        AssetTokenFeeConfig calldata feeConfig
+    ) external onlyManagerOwnwer {
         StorageSlots.setAssetDefaultConfig(feeConfig);
     }
 
     function setAssetHubConfig(address hub, AssetTokenFeeConfig calldata feeConfig) external {
+        _checkHubOwner(hub, _msgSender());
         StorageSlots.setAssetHubConfig(hub, feeConfig);
     }
 
     function setAssetCollectFee(address hub, uint256 collectFee) external {
+        _checkHubOwner(hub, _msgSender());
         StorageSlots.setAssetCollectFee(hub, collectFee);
     }
 
     function setAssetCreateFee(address hub, uint256 createFee) external {
+        _checkHubOwner(hub, _msgSender());
         StorageSlots.setAssetCreateFee(hub, createFee);
     }
 
     function setAssetUpdateFee(address hub, uint256 updateFee) external {
+        _checkHubOwner(hub, _msgSender());
         StorageSlots.setAssetUpdateFee(hub, updateFee);
+    }
+
+    function assetHubConfig(address hub) external view returns (AssetTokenConfig memory) {
+        AssetTokenFeeConfig memory assetConfig = StorageSlots.getAssetConfig(hub);
+        TokenConfig storage tokenConfig = StorageSlots.getTokenConfigStorage();
+        return
+            AssetTokenConfig({
+                exist: assetConfig.exist,
+                token: tokenConfig._token,
+                recipient: tokenConfig._recipient,
+                collectFee: assetConfig.collectFee,
+                createFee: assetConfig.createFee,
+                updateFee: assetConfig.updateFee
+            });
     }
 
     function onCreateAsset(

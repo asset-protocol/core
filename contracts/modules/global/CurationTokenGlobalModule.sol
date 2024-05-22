@@ -5,23 +5,28 @@ import {IERC20} from '@openzeppelin/contracts/interfaces/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {CurationTokenFeeConfig, StorageSlots, TokenConfig} from './StorageSlots.sol';
 import {ICurationGlobalModule, CurationAsset} from '../../curation/Interfaces.sol';
+import {RequiredManagerUpgradeable} from '../../management/base/RequiredManagerUpgradeable.sol';
 
-contract CurationTokenGlobalModule is ICurationGlobalModule {
+abstract contract CurationTokenGlobalModule is RequiredManagerUpgradeable, ICurationGlobalModule {
     using SafeERC20 for IERC20;
 
     function setCurationConfig(CurationTokenFeeConfig calldata feeConfig) external {
         StorageSlots.setCurationConfig(feeConfig);
     }
 
-    function setCurationCollectFee(uint256 collectFee) external {
+    function curationConfig() external view returns (CurationTokenFeeConfig memory) {
+        return StorageSlots.getCurationConfig();
+    }
+
+    function setCurationCollectFee(uint256 collectFee) external onlyManagerOwnwer {
         StorageSlots.setCurationCollectFee(collectFee);
     }
 
-    function setCurationCreateFee(uint256 createFee) external {
+    function setCurationCreateFee(uint256 createFee) external onlyManagerOwnwer {
         StorageSlots.setCurationCreateFee(createFee);
     }
 
-    function setCurationUpdateFee(uint256 updateFee) external {
+    function setCurationUpdateFee(uint256 updateFee) external onlyManagerOwnwer {
         StorageSlots.setCurationUpdateFee(updateFee);
     }
 

@@ -31,6 +31,16 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
         _;
     }
 
+    modifier onlyManagerOwnwer() {
+        require(msg.sender == _managerOwner(), 'not manager owner');
+        _;
+    }
+
+    modifier onlyCuration(){
+        require(_msgSender() == _curation(), "not curation");
+        _;
+    }
+
     function manager() external view returns (address) {
         return StorageSlots.getManager();
     }
@@ -40,6 +50,10 @@ abstract contract RequiredManagerUpgradeable is Initializable, ContextUpgradeabl
         if (!isHub) {
             revert NotHub();
         }
+    }
+
+    function _curation() public view returns (address){
+        return IAssetHubManager(StorageSlots.getManager()).curation();
     }
 
     function _checkHubOwner(address hub, address account) internal view {

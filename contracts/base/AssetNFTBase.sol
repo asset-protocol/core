@@ -38,10 +38,12 @@ contract AssetNFTBase is ERC721Upgradeable, PausableUpgradeable, IERC4906 {
         if (pub == address(0)) {
             revert Errors.NoAssetPublisher();
         }
-
         AssetNFTStorage storage $ = Storage.getAssetStorage();
-        uint256 assetId = $._assertCounter;
-        $._assertCounter = assetId + 1;
+        if (!$._isOpen) {
+            require(pub == _msgSender(), 'only admin can create asset');
+        }
+        uint256 assetId = $._assetCounter;
+        $._assetCounter = assetId + 1;
         _mint(pub, assetId);
         DataTypes.Asset memory asset = DataTypes.Asset({
             contentURI: data.contentURI,

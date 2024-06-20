@@ -12,45 +12,45 @@ export const AssetHubImplModule = buildModule(Contracts.AssetHub, m => {
   return { assetHubImpl }
 });
 
-export const OneCollectNFTImplModule = (manager: ContractFuture<string>) => {
-  return buildModule(Contracts.OneCollectNFT, (m) => {
-    const oneCollectNFTImpl = m.contract(Contracts.OneCollectNFT, []);
-    return { oneCollectNFTImpl };
+export const CollectNFTImplModule = (manager: ContractFuture<string>) => {
+  return buildModule(Contracts.CollectNFT, (m) => {
+    const collectNFTImpl = m.contract(Contracts.CollectNFT, []);
+    return { collectNFTImpl };
   });
 }
 
-export const OneTokenCollectModule = (manager: ContractFuture<string>) => {
-  return buildModule(Contracts.OneTokenCollectModule, (m) => {
-    const impl = m.contract(Contracts.OneTokenCollectModule, [], {
-      id: Contracts.OneTokenCollectModule + "_impl"
+export const TokenCollectModule = (manager: ContractFuture<string>) => {
+  return buildModule(Contracts.TokenCollectModule, (m) => {
+    const impl = m.contract(Contracts.TokenCollectModule, [], {
+      id: Contracts.TokenCollectModule + "_impl"
     });
     const proxy = m.contract(Contracts.UpgradeableProxy, [impl, '0x']);
-    const oneTokenCollectModule = m.contractAt(Contracts.OneTokenCollectModule, proxy);
-    m.call(oneTokenCollectModule, "initialize", [manager]);
-    return { oneTokenCollectModule };
+    const tokenCollectModule = m.contractAt(Contracts.TokenCollectModule, proxy);
+    m.call(tokenCollectModule, "initialize", [manager]);
+    return { tokenCollectModule };
   });
 }
 
-export const OneFeeCollectModule = (manager: ContractFuture<string>) => {
-  return buildModule(Contracts.OneFeeCollectModule, (m) => {
-    const impl = m.contract(Contracts.OneFeeCollectModule, [], {
-      id: Contracts.OneFeeCollectModule + "_impl"
+export const FeeCollectModule = (manager: ContractFuture<string>) => {
+  return buildModule(Contracts.FeeCollectModule, (m) => {
+    const impl = m.contract(Contracts.FeeCollectModule, [], {
+      id: Contracts.FeeCollectModule + "_impl"
     });
     const proxy = m.contract(Contracts.UpgradeableProxy, [impl, '0x']);
-    const oneFeeCollectModule = m.contractAt(Contracts.OneFeeCollectModule, proxy);
-    m.call(oneFeeCollectModule, "initialize", [manager]);
-    return { oneFeeCollectModule };
+    const feeCollectModule = m.contractAt(Contracts.FeeCollectModule, proxy);
+    m.call(feeCollectModule, "initialize", [manager]);
+    return { feeCollectModule };
   });
 }
 
-export const OneNftAssetGatedModule = (manager: ContractFuture<string>) => {
-  return buildModule(Contracts.OneNftAssetGatedModule, (m) => {
-    const impl = m.contract(Contracts.OneNftAssetGatedModule, [], {
-      id: Contracts.OneNftAssetGatedModule + "_impl"
+export const NftAssetGatedModule = (manager: ContractFuture<string>) => {
+  return buildModule(Contracts.NftAssetGatedModule, (m) => {
+    const impl = m.contract(Contracts.NftAssetGatedModule, [], {
+      id: Contracts.NftAssetGatedModule + "_impl"
     });
     const proxy = m.contract(Contracts.UpgradeableProxy, [impl, '0x']);
-    const oneNftAssetGatedModule = m.contractAt(Contracts.OneNftAssetGatedModule, proxy);
-    m.call(oneNftAssetGatedModule, "initialize", [manager]);
-    return { oneNftAssetGatedModule };
+    const nftAssetGatedModule = m.contractAt(Contracts.NftAssetGatedModule, proxy);
+    m.call(nftAssetGatedModule, "initialize", [manager]);
+    return { nftAssetGatedModule };
   });
 }

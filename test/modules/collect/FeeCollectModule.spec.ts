@@ -1,12 +1,12 @@
-import { loadFixture, setBalance, setBlockGasLimit } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, setBalance } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { AbiCoder, ZeroAddress } from "ethers";
-import { AssetHub, FeeCollectModule, FeeCollectModule__factory, TokenCollectModule, TokenCollectModule__factory } from "../../../typechain-types";
+import { AssetHub, FeeCollectModule, FeeCollectModule__factory } from "../../../typechain-types";
 import { createAssetStatic, createAsset } from "../../helpers/asset";
-import { DeployCtx, deployContracts, deployer, user, user3, userAddress } from "../../setup.spec";
+import { DeployCtx, deployContracts, deployer, hubManager, user, user3, userAddress } from "../../setup.spec";
 import { ethers } from "hardhat";
 
-describe("Collect Asset with fee collect module", async () => {
+describe("Collect Asset with one fee collect module", async () => {
   let cts: DeployCtx = {} as any
   let assetHub: AssetHub
   let feeCollectModule: FeeCollectModule = {} as any
@@ -18,7 +18,7 @@ describe("Collect Asset with fee collect module", async () => {
     cts = await loadFixture(deployContracts)
     assetHub = cts.assetHub.connect(user)
     feeCollectModule = await new FeeCollectModule__factory(user).deploy()
-    await feeCollectModule.initialize(await assetHub.getAddress())
+    await feeCollectModule.initialize(await hubManager.getAddress())
     const adminHub = cts.assetHub.connect(deployer)
     await adminHub.setCollectModuleWhitelist(await feeCollectModule.getAddress(), true);
 
@@ -35,7 +35,7 @@ describe("Collect Asset with fee collect module", async () => {
   it("should fail to create asset with unwhitelisted fee collect module", async function () {
     const unwhitelistedFeeModule = await new FeeCollectModule__factory(user)
       .deploy()
-    await unwhitelistedFeeModule.initialize(await assetHub.getAddress())
+    await unwhitelistedFeeModule.initialize(await hubManager.getAddress())
     await expect(createAsset(assetHub, await unwhitelistedFeeModule.getAddress(), ZeroAddress))
       .to.be.reverted
   })

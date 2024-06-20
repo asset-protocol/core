@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { deployer, hubManager } from '../setup.spec';
 import { ZeroAddress } from 'ethers';
-import { AssetHub__factory, LiteAssetHubManager__factory } from '../../typechain-types';
+import { AssetHubManager__factory, AssetHub__factory } from '../../typechain-types';
 
 const HUB_NAME = 'TEST_HUB';
 
@@ -15,6 +15,7 @@ describe('AssetHubFactory', async function () {
       name: HUB_NAME,
       collectNft: true,
       createModule: ZeroAddress,
+      contractURI: '',
     };
     await expect(hubManager.deploy(args)).to.be.not.reverted;
   });
@@ -25,6 +26,7 @@ describe('AssetHubFactory', async function () {
         admin: await deployer.getAddress(),
         name: HUB_NAME,
         createModule: ZeroAddress,
+        contractURI: '',
       })
     )
       .to.be.revertedWithCustomError(hubManager, 'NameHubExisted')
@@ -37,6 +39,7 @@ describe('AssetHubFactory', async function () {
         admin: await deployer.getAddress(),
         name: HUB_NAME + '_V2',
         createModule: ZeroAddress,
+        contractURI: '',
       })
     ).to.not.be.reverted;
   });
@@ -46,6 +49,7 @@ describe('AssetHubFactory', async function () {
       admin: await deployer.getAddress(),
       name: HUB_NAME + '_V3',
       createModule: ZeroAddress,
+      contractURI: '',
     });
     const resp = await tx.wait();
     expect(resp?.logs).to.not.be.empty;
@@ -53,7 +57,7 @@ describe('AssetHubFactory', async function () {
       (log) => log.topics[0] === hubManager.interface.getEvent('AssetHubDeployed').topicHash
     );
     expect(logdata).to.not.be.undefined;
-    const logRes = LiteAssetHubManager__factory.createInterface().decodeEventLog(
+    const logRes = AssetHubManager__factory.createInterface().decodeEventLog(
       'AssetHubDeployed',
       logdata!.data,
       logdata!.topics

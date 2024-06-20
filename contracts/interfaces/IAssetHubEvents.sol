@@ -2,11 +2,12 @@
 pragma solidity ^0.8.20;
 
 import {DataTypes} from '../libs/DataTypes.sol';
+import {IAssetHub} from './IAssetHub.sol';
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {IERC4906} from '@openzeppelin/contracts/interfaces/IERC4906.sol';
 import {IERC1967} from '@openzeppelin/contracts/interfaces/IERC1967.sol';
 
-interface IAssetHubEvents is IERC721, IERC4906, IERC1967 {
+interface IAssetHubEvents is IERC721, IERC4906, IERC1967, IAssetHub {
     event AssetCreated(
         uint256 indexed assetId,
         address indexed publisher,

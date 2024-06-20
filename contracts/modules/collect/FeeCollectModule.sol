@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {CollectModuleBaseUpgradeable} from './base/CollectModuleBaseUpgradeable.sol';
-import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
+import {Version} from '../../upgradeability/UpgradeableBase.sol';
 import {IAssetHub} from '../../interfaces/IAssetHub.sol';
 
 struct FeeCollectConfig {
@@ -10,26 +10,25 @@ struct FeeCollectConfig {
     uint256 amount;
 }
 
-contract FeeCollectModule is UpgradeableBase, CollectModuleBaseUpgradeable {
-    mapping(uint256 => FeeCollectConfig) internal _configs;
+contract FeeCollectModule is Version, CollectModuleBaseUpgradeable {
+    mapping(address => mapping(uint256 => FeeCollectConfig)) internal _configs;
 
-    function initialize(address hub) external initializer {
-        __CollectModuleBaseUpgradeable_init(hub);
+    function initialize(address manager) external initializer {
+        __CollectModuleBaseUpgradeable_init(manager);
     }
 
     function version() external view virtual override returns (string memory) {
         return '1.0.0';
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyHubOwner {}
-
     function initialModule(
         address /*publisher*/,
         uint256 assetId,
         bytes calldata data
     ) external virtual override onlyHub returns (bytes memory) {
+        address hub = _msgSender();
         FeeCollectConfig memory config = abi.decode(data, (FeeCollectConfig));
-        _configs[assetId] = config;
+        _configs[hub][assetId] = config;
         return '';
     }
 
@@ -39,13 +38,14 @@ contract FeeCollectModule is UpgradeableBase, CollectModuleBaseUpgradeable {
         uint256 assetId,
         bytes calldata
     ) external payable virtual override onlyHub returns (bytes memory) {
-        FeeCollectConfig memory config = _configs[assetId];
+        address hub = _msgSender();
+        FeeCollectConfig memory config = _configs[hub][assetId];
         if (config.amount == 0) return '';
         address payable recipient = config.recipient;
         if (recipient == address(0)) {
-            recipient = payable(IAssetHub(HUB).assetPublisher(assetId));
+            recipient = payable(IAssetHub(hub).assetPublisher(assetId));
         }
-        require(recipient != address(0),"recipient should not be zero");
+        require(recipient != address(0), 'recipient should not be zero');
         recipient.transfer(config.amount);
         return '';
     }

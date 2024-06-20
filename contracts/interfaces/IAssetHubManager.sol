@@ -5,17 +5,19 @@ struct HubCreateData {
     address admin;
     string name;
     address createModule;
+    string contractURI;
 }
 
-struct LiteHubInfo {
+struct AssetHubInfo {
     address createModule;
     address tokenCollectModule;
     address feeCollectModule;
     address nftGatedModule;
+    string contractURI;
 }
 
 interface IAssetHubManagerEvents {
-    event AssetHubDeployed(address indexed admin, string name, address assetHub, LiteHubInfo data);
+    event AssetHubDeployed(address indexed admin, string name, address assetHub, AssetHubInfo data);
     event GlobalModuleChanged(address globalModule);
     event HubCreatorNFTChanged(address creatorNFT);
     event CurationUpdated(address curation);

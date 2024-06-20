@@ -2,15 +2,20 @@
 pragma solidity ^0.8.20;
 
 import {DataTypes} from '../libs/DataTypes.sol';
+import {IERC7572} from './IERC7572.sol';
 
-interface IAssetHub {
+interface IAssetHub is IERC7572 {
+    event InfoURIChanged(string uri);
+    event IsOpenChanged(bool isOpen);
+
     function initialize(
         string memory name,
         address manager,
         address admin,
         address collectNFT,
         address createAssetModule,
-        address[] memory whitelistedCollectModules
+        address[] memory whitelistedCollectModules,
+        string memory contractURI
     ) external;
 
     /// @notice create a new asset

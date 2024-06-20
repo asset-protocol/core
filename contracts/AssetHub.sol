@@ -8,6 +8,7 @@ import {IAssetHub} from './interfaces/IAssetHub.sol';
 import {ICollectNFT} from './interfaces/ICollectNFT.sol';
 import {ICreateAssetModule} from './interfaces/ICreateAssetModule.sol';
 import {IAssetGatedModule} from './interfaces/IAssetGatedModule.sol';
+import {ERC7572} from './base/ERC7572.sol';
 import {AssetNFTBase} from './base/AssetNFTBase.sol';
 import {AssetHubLogic} from './base/AssetHubLogic.sol';
 import {Storage, AssetNFTStorage} from './base/Storage.sol';
@@ -16,14 +17,15 @@ import {Errors} from './libs/Errors.sol';
 import {Constants} from './libs/Constants.sol';
 import {DataTypes} from './libs/DataTypes.sol';
 
-contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHub {
+contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, ERC7572, IAssetHub {
     function initialize(
         string memory name,
         address manager,
         address admin,
         address collectNFT,
         address createAssetModule,
-        address[] memory whitelistedCollectModules
+        address[] memory whitelistedCollectModules,
+        string memory contractURI
     ) external initializer {
         __AssetNFTBase_init(name, name);
         __Ownable_init(admin);
@@ -36,12 +38,13 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
                 _setCollectModuleWhitelist(whitelistedCollectModules[i], true);
             }
         }
+        _setContractURI(contractURI);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function version() external view virtual override returns (string memory) {
-        return '0.2.1';
+        return '0.2.2';
     }
 
     function hubOwner() public view override returns (address) {
@@ -87,6 +90,16 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, IAssetHu
 
     function getCreateAssetModule() external view returns (address) {
         return Storage.getCreateAssetModule();
+    }
+
+    function setContractURI(string memory uri) external onlyOwner {
+        _setContractURI(uri);
+        emit InfoURIChanged(uri);
+    }
+
+    function setIsOpen(bool isOpen) external onlyOwner {
+        Storage.setIsOpen(isOpen);
+        emit IsOpenChanged(isOpen);
     }
 
     function assetGated(uint256 assetId, address account) external view returns (bool) {

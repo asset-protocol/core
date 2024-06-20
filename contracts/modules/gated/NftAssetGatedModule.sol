@@ -5,10 +5,10 @@ import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {IERC1155} from '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC165Upgradeable} from '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol';
-import {UpgradeableBase} from '../../upgradeability/UpgradeableBase.sol';
+import {Version} from '../../upgradeability/UpgradeableBase.sol';
 import {INftAssetGatedModule} from '../../interfaces/INftAssetGatedModule.sol';
 import {IAssetGatedModule} from '../../interfaces/IAssetGatedModule.sol';
-import {RequiredHubUpgradeable} from '../../base/RequiredHubUpgradeable.sol';
+import {RequiredManagerUpgradeable} from '../../management/base/RequiredManagerUpgradeable.sol';
 import {Utils} from '../../libs/Utils.sol';
 
 enum NftGatedType {
@@ -26,8 +26,8 @@ struct NftGatedConfig {
 }
 
 contract NftAssetGatedModule is
-    UpgradeableBase,
-    RequiredHubUpgradeable,
+    Version,
+    RequiredManagerUpgradeable,
     ERC165Upgradeable,
     INftAssetGatedModule
 {
@@ -35,30 +35,29 @@ contract NftAssetGatedModule is
     bytes4 public constant ERC1155_INTERFACE = type(IERC1155).interfaceId;
     bytes4 public constant ERC20_INTERFACE = type(IERC20).interfaceId;
 
-    mapping(uint256 => NftGatedConfig[]) internal nftGatedConfigs;
+    mapping(address => mapping(uint256 => NftGatedConfig[])) internal _nftGatedConfigs;
 
-    event ConfigChanged(uint256 indexed assetId, NftGatedConfig[] config);
+    event ConfigChanged(address indexed hub, uint256 indexed assetId, NftGatedConfig[] config);
 
     error NftContractIsZeroAddress();
     error ContractTypeNotSupported(address);
     error ContractTypeNotMatched(address, NftGatedType);
 
-    function initialize(address hub) external initializer {
-        __UUPSUpgradeable_init();
-        __RequiredHub_init(hub);
+    function initialize(address manager) external initializer {
+        __RequiredManager_init(manager);
     }
 
     function version() external view virtual override returns (string memory) {
         return '1.0.0';
     }
 
-    function setConfig(uint256 assetId, NftGatedConfig[] calldata config) external {
-        _checkAssetOwner(assetId, msg.sender);
-        _setConfig(assetId, config);
+    function setConfig(address hub, uint256 assetId, NftGatedConfig[] calldata config) external {
+        _checkAssetOwner(hub, assetId, msg.sender);
+        _setConfig(hub, assetId, config);
     }
 
-    function getConfig(uint256 assetId) public view returns (NftGatedConfig[] memory) {
-        return nftGatedConfigs[assetId];
+    function getConfig(address hub, uint256 assetId) public view returns (NftGatedConfig[] memory) {
+        return _nftGatedConfigs[hub][assetId];
     }
 
     function initialModule(
@@ -66,16 +65,21 @@ contract NftAssetGatedModule is
         uint256 assetId,
         bytes calldata data
     ) external onlyHub returns (bytes memory) {
+        address hub = _msgSender();
         NftGatedConfig[] memory config = abi.decode(data, (NftGatedConfig[]));
         if (config.length == 0) {
             return '';
         }
-        _setConfig(assetId, config);
+        _setConfig(hub, assetId, config);
         return '';
     }
 
-    function isGated(uint256 assetId, address account) external view override returns (bool) {
-        NftGatedConfig[] memory config = nftGatedConfigs[assetId];
+    function isGated(
+        uint256 assetId,
+        address account
+    ) external view override onlyHub returns (bool) {
+        address hub = _msgSender();
+        NftGatedConfig[] memory config = _nftGatedConfigs[hub][assetId];
         if (config.length == 0) {
             return true;
         }
@@ -100,8 +104,6 @@ contract NftAssetGatedModule is
         return true;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyHubOwner {}
-
     function _checkNftContract(NftGatedConfig memory config) internal view {
         if (config.nftContract == address(0)) {
             revert NftContractIsZeroAddress();
@@ -123,14 +125,14 @@ contract NftAssetGatedModule is
         }
     }
 
-    function _setConfig(uint256 assetId, NftGatedConfig[] memory config) internal {
+    function _setConfig(address hub, uint256 assetId, NftGatedConfig[] memory config) internal {
         for (uint256 i = 0; i < config.length; i++) {
             _checkNftContract(config[i]);
         }
         for (uint256 i = 0; i < config.length; i++) {
-            nftGatedConfigs[assetId].push(config[i]);
+            _nftGatedConfigs[hub][assetId].push(config[i]);
         }
-        emit ConfigChanged(assetId, config);
+        emit ConfigChanged(hub, assetId, config);
     }
 
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {

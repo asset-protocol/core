@@ -1,6 +1,6 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers"
 import { AssetHub, TokenCollectModule, TokenCollectModule__factory } from "../../../typechain-types"
-import { DeployCtx, assetHubLogic, deployContracts, deployer, user, user3, userAddress } from "../../setup.spec"
+import { DeployCtx, assetHubLogic, deployContracts, deployer, hubManager, user, user3, userAddress } from "../../setup.spec"
 import { expect } from "chai"
 import { AbiCoder, ZeroAddress, parseEther } from "ethers"
 import { ZERO_DATA } from "../../contants"
@@ -8,7 +8,7 @@ import { ERRORS } from "../../helpers/errors"
 import { createAsset, createAssetStatic } from "../../helpers/asset"
 import { ethers } from "hardhat"
 
-describe("Collect Asset with token collect module", async () => {
+describe("Collect Asset with ONE token collect module", async () => {
   let cts: DeployCtx = {} as any
   let assetHub: AssetHub
   let tokenCollectModule: TokenCollectModule = {} as any
@@ -20,7 +20,7 @@ describe("Collect Asset with token collect module", async () => {
     cts = await loadFixture(deployContracts)
     assetHub = cts.assetHub.connect(user)
     tokenCollectModule = await new TokenCollectModule__factory(user).deploy()
-    await tokenCollectModule.initialize(await assetHub.getAddress())
+    await tokenCollectModule.initialize(await hubManager.getAddress())
     const adminHub = cts.assetHub.connect(deployer)
     await expect(adminHub.setCollectModuleWhitelist(await tokenCollectModule.getAddress(), true))
       .to.not.be.reverted
@@ -38,7 +38,7 @@ describe("Collect Asset with token collect module", async () => {
   it("should fail to create asset with unwhitelisted token collect module", async function () {
     const unwhitelistedTokenModule = await new TokenCollectModule__factory(user)
       .deploy()
-    await unwhitelistedTokenModule.initialize(await assetHub.getAddress())
+    await unwhitelistedTokenModule.initialize(await hubManager.getAddress())
     await expect(createAsset(assetHub, await unwhitelistedTokenModule.getAddress(), ZERO_DATA))
       .to.be.revertedWithCustomError(assetHubLogic, ERRORS.CollectModuleNotWhitelisted)
   })
@@ -51,7 +51,7 @@ describe("Collect Asset with token collect module", async () => {
     const assetId = await createAssetStatic(assetHub, await tokenCollectModule.getAddress(), initData);
     await expect(await createAsset(assetHub, await tokenCollectModule.getAddress(), initData))
       .to.not.be.reverted
-    const fc = await tokenCollectModule.getConfig(assetId)
+    const fc = await tokenCollectModule.getConfig(await assetHub.getAddress(), assetId)
     expect(fc.amount).to.be.eq(10)
     expect(fc.currency).to.be.eq(await cts.tokenImpl.getAddress())
     expect(fc.recipient).to.be.eq(userAddress)

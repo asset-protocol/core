@@ -6,7 +6,9 @@ import {DataTypes} from '../libs/DataTypes.sol';
 struct AssetNFTStorage {
     mapping(uint256 => DataTypes.Asset) _assets;
     mapping(address => uint256[]) _publisherAssets;
-    uint256 _assertCounter;
+    uint256 _assetCounter;
+    // 是否面向其他创作者
+    bool _isOpen;
 }
 
 library Storage {
@@ -19,6 +21,11 @@ library Storage {
         assembly {
             $.slot := AssetNFTStorageLocation
         }
+    }
+
+    function setIsOpen(bool isOpen) internal {
+        AssetNFTStorage storage $ = getAssetStorage();
+        $._isOpen = isOpen;
     }
 
     // keccak256(abi.encode(uint256(keccak256('assetnft.storage.collectWhitelist')) - 1)) & ~bytes32(uint256(0xff))

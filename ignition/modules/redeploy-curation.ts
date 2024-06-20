@@ -4,7 +4,7 @@ import { CurationModule } from './core/curation';
 
 export default buildModule('RedeployCuration_V2', (m) => {
   const manager = m.contractAt(
-    Contracts.LiteAssetHubManager,
+    Contracts.AssetHubManager,
     '0x5910a60566153a1c2199fa1C54f7bEB998B5B163'
   );
   const curationModule = CurationModule('Curation', 'AC', manager, Contracts.Curation + '_V2');

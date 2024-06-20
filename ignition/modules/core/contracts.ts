@@ -27,15 +27,8 @@ export enum Contracts {
 
   AssetHubCreatorNFT = "AssetHubCreatorNFT",
 
-  LiteAssetHubManager = "LiteAssetHubManager",
-
   Curation = "Curation",
   CurationLogic = "CurationLogic",
-
-  OneCollectNFT = "OneCollectNFT",
-  OneTokenCollectModule = "OneTokenCollectModule",
-  OneFeeCollectModule = "OneFeeCollectModule",
-  OneNftAssetGatedModule = "OneNftAssetGatedModule",
 
   UpgradeableProxy = "UpgradeableProxy",
 

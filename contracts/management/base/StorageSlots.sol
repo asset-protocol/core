@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {LiteHubInfo} from '../../interfaces/IAssetHubManager.sol';
+import {AssetHubInfo} from '../../interfaces/IAssetHubManager.sol';
 
 struct LiteHubStorage {
     address collectNFT;
     mapping(string => address) namedHubs;
     mapping(address => address[]) creatorHubs;
-    mapping(address => LiteHubInfo) assetHubs;
+    mapping(address => AssetHubInfo) assetHubs;
 }
 
 struct AddressValue {
@@ -38,7 +38,7 @@ library StorageSlots {
         string memory name,
         address hub,
         address admin,
-        LiteHubInfo memory hubInfo
+        AssetHubInfo memory hubInfo
     ) internal {
         LiteHubStorage storage $ = getLiteHubStorage();
         if (hasNamedHub(name)) {
@@ -49,12 +49,12 @@ library StorageSlots {
         $.creatorHubs[admin].push(hub);
     }
 
-    function getLiteHub(address hub) internal view returns (LiteHubInfo memory) {
+    function getLiteHub(address hub) internal view returns (AssetHubInfo memory) {
         LiteHubStorage storage $ = getLiteHubStorage();
         return $.assetHubs[hub];
     }
 
-    function getLiteHubByName(string memory name) internal view returns (LiteHubInfo memory) {
+    function getLiteHubByName(string memory name) internal view returns (AssetHubInfo memory) {
         LiteHubStorage storage $ = getLiteHubStorage();
         return getLiteHub($.namedHubs[name]);
     }

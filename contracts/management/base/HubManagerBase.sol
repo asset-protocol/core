@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {MultipleBeacon} from '../../upgradeability/MultipleBeacon.sol';
 import {MultipleBeaconProxy} from '../../upgradeability/MultipleBeaconProxy.sol';
 import {StorageSlots, LiteHubStorage} from './StorageSlots.sol';
-import {HubCreateData, IAssetHubManagerEvents, LiteHubInfo} from '../../interfaces/IAssetHubManager.sol';
+import {HubCreateData, IAssetHubManagerEvents, AssetHubInfo} from '../../interfaces/IAssetHubManager.sol';
 import {IAssetHub} from '../../interfaces/IAssetHub.sol';
 
 struct MangerInitData {
@@ -16,8 +16,9 @@ struct MangerInitData {
     address nftGatedModule;
 }
 
-contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
+contract HubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
     error NoAssetHubImplementation();
+    event ModulesInitialized(MangerInitData modules);
 
     struct HubModulesStorage {
         address tokenCreateModule;
@@ -48,13 +49,14 @@ contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
         $.feeCollectModule = data.feeCollectModule;
         $.nftGatedModule = data.nftGatedModule;
         $.tokenCollectModule = data.tokenCollectModule;
+        emit ModulesInitialized(data);
     }
 
     function assetHubImpl() public view returns (address) {
         return implementation(StorageSlots.IMPL_ASSETHUB);
     }
 
-    function assetHubInfo(address hub) external view returns (LiteHubInfo memory) {
+    function assetHubInfo(address hub) external view returns (AssetHubInfo memory) {
         return StorageSlots.getLiteHub(hub);
     }
 
@@ -70,7 +72,7 @@ contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
             });
     }
 
-    function assetHubInfoByName(string calldata name) external view returns (LiteHubInfo memory) {
+    function assetHubInfoByName(string calldata name) external view returns (AssetHubInfo memory) {
         return StorageSlots.getLiteHubByName(name);
     }
 
@@ -87,13 +89,7 @@ contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
             revert NoAssetHubImplementation();
         }
         address hub = _createProxy(StorageSlots.IMPL_ASSETHUB);
-
         HubModulesStorage storage $ = getModulesStorage();
-        LiteHubInfo memory info;
-        info.createModule = data.createModule;
-        info.feeCollectModule = $.feeCollectModule;
-        info.tokenCollectModule = $.tokenCollectModule;
-        info.nftGatedModule = $.nftGatedModule;
         address[] memory collectModules = new address[](2);
         collectModules[0] = $.feeCollectModule;
         collectModules[1] = $.tokenCollectModule;
@@ -106,9 +102,17 @@ contract LiteHubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
             address(this),
             admin,
             $.collectNFT,
-            info.createModule,
-            collectModules
+            data.createModule,
+            collectModules,
+            data.contractURI
         );
+        AssetHubInfo memory info = AssetHubInfo({
+            createModule: data.createModule,
+            feeCollectModule: $.feeCollectModule,
+            tokenCollectModule: $.tokenCollectModule,
+            nftGatedModule: $.nftGatedModule,
+            contractURI: data.contractURI
+        });
         StorageSlots.createHub(data.name, hub, admin, info);
         emit AssetHubDeployed(admin, data.name, hub, info);
         return hub;

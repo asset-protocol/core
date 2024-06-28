@@ -9,12 +9,7 @@ import {IAssetHubManager, HubCreateData} from '../interfaces/IAssetHubManager.so
 import {HubManagerBase, MangerInitData} from './base/HubManagerBase.sol';
 import {ManagerSlots} from './ManagerSlots.sol';
 
-contract AssetHubManager is
-    HubManagerBase,
-    UpgradeableBase,
-    OwnableUpgradeable,
-    IAssetHubManager
-{
+contract AssetHubManager is HubManagerBase, UpgradeableBase, OwnableUpgradeable, IAssetHubManager {
     error NameHubExisted(string hubName);
     error AssetHubNotExisted();
     error NotCreator(address);
@@ -98,6 +93,10 @@ contract AssetHubManager is
     function deploy(HubCreateData calldata data) external onlyHubCreator returns (address) {
         address hub = _createHub(data);
         return hub;
+    }
+
+    function upgradeAssetHub(address newImpl) external onlyOwner {
+        _upgradeAssetHub(newImpl);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

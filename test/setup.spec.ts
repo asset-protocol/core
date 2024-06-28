@@ -107,5 +107,6 @@ before(async function () {
     feeCollectModule: await feeCollectModule.getAddress(),
     nftGatedModule: await nftAssetGatedModule.getAddress(),
     createModule: ZeroAddress,
+    contractURI: '',
   };
 });

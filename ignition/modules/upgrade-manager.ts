@@ -2,10 +2,10 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 import { Contracts } from './core/contracts';
 import { ASSETHUB_MANAGER } from './consts';
 
-export default buildModule('UpgradeManager_V5', (m) => {
-  const assethubManager = m.contractAt(Contracts.LiteAssetHubManager, ASSETHUB_MANAGER);
+export default buildModule('UpgradeManager_V2', (m) => {
+  const assethubManager = m.contractAt(Contracts.AssetHubManager, ASSETHUB_MANAGER);
 
-  const managerNext = m.contract(Contracts.LiteAssetHubManager, [], {
+  const managerNext = m.contract(Contracts.AssetHubManager, [], {
     id: 'AssetHubManager_next',
   });
 

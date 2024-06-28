@@ -56,6 +56,10 @@ contract HubManagerBase is MultipleBeacon, IAssetHubManagerEvents {
         return implementation(StorageSlots.IMPL_ASSETHUB);
     }
 
+    function _upgradeAssetHub(address impl) internal {
+        _upgradeTo(StorageSlots.IMPL_ASSETHUB, impl);
+    }
+
     function assetHubInfo(address hub) external view returns (AssetHubInfo memory) {
         return StorageSlots.getLiteHub(hub);
     }

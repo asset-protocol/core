@@ -92,8 +92,12 @@ contract AssetHub is AssetNFTBase, OwnableUpgradeable, UpgradeableBase, ERC7572,
         return Storage.getCreateAssetModule();
     }
 
-    function setContractURI(string memory uri) external onlyOwner {
+    function setContractURI(string memory uri) public onlyOwner {
         _setContractURI(uri);
+    }
+
+    function _setContractURI(string memory uri) internal virtual override {
+        super._setContractURI(uri);
         emit InfoURIChanged(uri);
     }
 

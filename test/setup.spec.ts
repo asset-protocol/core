@@ -19,7 +19,7 @@ import {
 import { Signer, ZeroAddress } from 'ethers';
 import { expect } from 'chai';
 import { AssetHubLibraryAddresses } from '../typechain-types/factories/contracts/AssetHub__factory';
-import liteManagerModule from '../ignition/modules/deploy-manager';
+import assethubManagerModule from '../ignition/modules/deploy-manager';
 import { Contracts } from '../ignition/modules/core/contracts';
 import TestTokenModule from '../ignition/modules/core/TestToken';
 import { AssetHubInfoStruct } from '../typechain-types/contracts/management/AssetHubManager';
@@ -46,6 +46,19 @@ export type DeployCtx = {
   assetHub: AssetHub;
   tokenImpl: TestToken;
 };
+
+export async function deployHub(owner: Signer) {
+  const args = {
+    name: 'TestHub' + new Date().getTime().toString(),
+    admin: owner,
+    createModule: ZeroAddress,
+    contractURI: '',
+  };
+  const hubAddr = await hubManager.deploy.staticCall(args);
+  await hubManager.deploy(args);
+  const assetHub = await ethers.getContractAt(Contracts.AssetHub, hubAddr, owner);
+  return assetHub;
+}
 
 export async function deployContracts(): Promise<DeployCtx> {
   const hubAddress = await hubManager.deploy.staticCall({
@@ -88,7 +101,7 @@ before(async function () {
     'contracts/base/AssetHubLogic.sol:AssetHubLogic': await assetHubLogic.getAddress(),
   };
   const {
-    liteManager,
+    manager,
     tokenGlobalModule: gm,
     creatorNFT: nft,
     feeCollectModule,
@@ -96,8 +109,8 @@ before(async function () {
     tokenCollectModule,
     testToken: tkn,
     curation,
-  } = await ignition.deploy(liteManagerModule);
-  hubManager = await ethers.getContractAt(Contracts.AssetHubManager, liteManager);
+  } = await ignition.deploy(assethubManagerModule);
+  hubManager = await ethers.getContractAt(Contracts.AssetHubManager, manager);
   testToken = await ethers.getContractAt(Contracts.TestToken, tkn);
   tokenGlobalModule = await ethers.getContractAt(Contracts.TokenGlobalModule, gm);
   creatorNFT = await ethers.getContractAt(Contracts.AssetHubCreatorNFT, nft);

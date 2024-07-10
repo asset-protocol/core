@@ -65,34 +65,24 @@ contract Curation is
     }
 
     function create(
+        address hub,
         string memory curationURI,
         uint8 status,
         uint256 expiry,
         CurationAsset[] calldata assets
     ) external payable virtual returns (uint256) {
-        AssetInfo[] memory assetInfos = new AssetInfo[](assets.length);
-        for (uint i = 0; i < assets.length; i++) {
-            CurationAsset memory asset = assets[i];
-            assetInfos[i] = AssetInfo({
-                hub: asset.hub,
-                assetId: asset.assetId,
-                status: AssetApproveStatus.Pending,
-                expiry: 0
-            });
-        }
-        address publisher = _msgSender();
-        uint256 tokenId = StorageSlot.createCuration(curationURI, status, expiry, assetInfos);
-        if (_globalModule() != address(0)) {
-            ICurationGlobalModule(_globalModule()).onCurationCreate(
-                tokenId,
-                publisher,
-                curationURI,
-                status,
-                assets
-            );
-        }
-        _mint(publisher, tokenId);
-        emit CurationCreated(publisher, tokenId, curationURI, status, expiry, assets);
+        _checkHubOwner(hub, _msgSender());
+        uint256 tokenId = CurationLogic.create(
+            _msgSender(),
+            _globalModule(),
+            hub,
+            curationURI,
+            status,
+            expiry,
+            assets
+        );
+        _mint(hub, tokenId);
+        emit CurationCreated(hub, tokenId, curationURI, status, expiry, assets);
         return tokenId;
     }
 
@@ -204,8 +194,8 @@ contract Curation is
         require(IAssetHub(hub).assetPublisher(assetId) != address(0), 'asset not exists');
     }
 
-    function _checkTokenOwner(uint256 id) internal view {
+    function _checkTokenOwner(uint256 id) internal view virtual {
         require(_ownerOf(id) != address(0), 'curation have not created');
-        require(_ownerOf(id) == _msgSender(), 'require token owner');
+        _checkHubOwner(_ownerOf(id), _msgSender());
     }
 }

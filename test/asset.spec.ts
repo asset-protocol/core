@@ -46,7 +46,7 @@ describe("Create Asset", async () => {
   })
 
 
-  it("should create asset with other publisher", async function () {
+  it("should not create asset with other publisher default", async function () {
     const thirdUser = accounts[2]
     await expect(assetHub.create({
       publisher: thirdUser,
@@ -56,10 +56,10 @@ describe("Create Asset", async () => {
       assetCreateModuleData: ZERO_DATA,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
-    })).to.not.be.reverted;
+    })).to.be.reverted;
   })
 
-  it("should create asset of the third publisher with owner", async function () {
+  it("should not create asset of the third publisher with owner", async function () {
     const thirdUser = accounts[2]
     const ownerHub = cts.assetHub.connect(deployer)
     await expect(ownerHub.create({
@@ -70,7 +70,7 @@ describe("Create Asset", async () => {
       assetCreateModuleData: ZERO_DATA,
       gatedModule: ZeroAddress,
       gatedModuleInitData: ZERO_DATA,
-    })).to.be.not.reverted
+    })).to.be.reverted
   })
 
   it("should update asset", async function () {

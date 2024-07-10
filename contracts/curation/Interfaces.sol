@@ -8,16 +8,18 @@ struct CurationAsset {
 
 interface ICurationGlobalModule {
     function onCurationCreate(
-        uint256 curationId,
         address publisher,
+        uint256 curationId,
+        address hub,
         string memory curationURI,
         uint8 status,
         CurationAsset[] calldata assets
     ) external payable;
 
     function onCurationCollect(
-        uint256 curationId,
         address publiser,
+        uint256 curationId,
+        address hub,
         address collector,
         bytes calldata data
     ) external;

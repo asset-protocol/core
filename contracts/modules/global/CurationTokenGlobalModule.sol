@@ -31,8 +31,9 @@ abstract contract CurationTokenGlobalModule is RequiredManagerUpgradeable, ICura
     }
 
     function onCurationCreate(
+        address  publisher ,
         uint256 /* curationId */,
-        address publisher,
+        address /* hub */,
         string memory /*curationURI*/,
         uint8 /*status*/,
         CurationAsset[] calldata /*assets*/
@@ -46,8 +47,9 @@ abstract contract CurationTokenGlobalModule is RequiredManagerUpgradeable, ICura
     }
 
     function onCurationCollect(
+        address publisher,
         uint256 curationId,
-        address publiser,
+        address hub,
         address collector,
         bytes calldata data
     ) external {}

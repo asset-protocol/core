@@ -2,8 +2,42 @@
 pragma solidity ^0.8.20;
 
 import './StorageSlot.sol';
+import {ICurationGlobalModule, CurationAsset} from './Interfaces.sol';
 
 library CurationLogic {
+    function create(
+        address publisher,
+        address globalModule,
+        address hub,
+        string memory curationURI,
+        uint8 status,
+        uint256 expiry,
+        CurationAsset[] calldata assets
+    ) external returns (uint256) {
+        AssetInfo[] memory assetInfos = new AssetInfo[](assets.length);
+        for (uint i = 0; i < assets.length; i++) {
+            CurationAsset memory asset = assets[i];
+            assetInfos[i] = AssetInfo({
+                hub: asset.hub,
+                assetId: asset.assetId,
+                status: AssetApproveStatus.Pending,
+                expiry: 0
+            });
+        }
+        uint256 tokenId = StorageSlot.createCuration(curationURI, status, expiry, assetInfos);
+        if (globalModule != address(0)) {
+            ICurationGlobalModule(globalModule).onCurationCreate(
+                publisher,
+                tokenId,
+                hub,
+                curationURI,
+                status,
+                assets
+            );
+        }
+        return tokenId;
+    }
+
     function assetsStatus(
         uint256 curationId,
         address[] calldata hubs,
@@ -40,7 +74,7 @@ library CurationLogic {
         address hub,
         uint256 assetId,
         AssetApproveStatus status
-    ) internal returns (bool, uint256) {
+    ) external returns (bool, uint256) {
         CurationStorage storage $ = StorageSlot.getCurationStorage();
         AssetInfo[] storage assets = $._curations[id].assets;
         uint256 expiry = 0;

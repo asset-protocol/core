@@ -37,12 +37,13 @@ describe('Test Curation', () => {
   });
 
   it('should create a curation without assets', async () => {
-    await expect(assetCuration.create('https://baidu.com', 0n, 0n, [])).to.not.be.reverted;
+    await expect(assetCuration.create(assetHub, 'https://baidu.com', 0n, 0n, [])).to.not.be
+      .reverted;
   });
 
   it('should create a curation with assets in a same hub', async () => {
     await expect(
-      assetCuration.create('https://baidu.com', 0n, 0n, [
+      assetCuration.create(assetHub, 'https://baidu.com', 0n, 0n, [
         {
           assetId: asset1,
           hub: hubAddress,
@@ -57,7 +58,7 @@ describe('Test Curation', () => {
 
   it('should create a curation with assets in different hubs', async () => {
     await expect(
-      assetCuration.create('https://baidu.com', 0n, 0n, [
+      assetCuration.create(assetHub, 'https://baidu.com', 0n, 0n, [
         {
           assetId: asset1,
           hub: hubAddress,
@@ -125,8 +126,15 @@ describe('Test Curation', () => {
   });
 
   it('add asset should be reverted when user is not asset owner', async () => {
-    const curationId = await assetCuration.create.staticCall('https://baidu.com', 0n, 0n, []);
-    await expect(assetCuration.create('https://baidu.com', 0n, 0n, [])).to.not.be.reverted;
+    const curationId = await assetCuration.create.staticCall(
+      assetHub,
+      'https://baidu.com',
+      0n,
+      0n,
+      []
+    );
+    await expect(assetCuration.create(assetHub, 'https://baidu.com', 0n, 0n, [])).to.not.be
+      .reverted;
     await expect(
       assetCuration.connect(user3).addAssets(curationId, [
         {
@@ -142,8 +150,15 @@ describe('Test Curation', () => {
   });
 
   it('add assets to curation', async () => {
-    const curationId = await assetCuration.create.staticCall('https://baidu.com', 0n, 0n, []);
-    await expect(assetCuration.create('https://baidu.com', 0n, 0n, [])).to.not.be.reverted;
+    const curationId = await assetCuration.create.staticCall(
+      assetHub,
+      'https://baidu.com',
+      0n,
+      0n,
+      []
+    );
+    await expect(assetCuration.create(assetHub, 'https://baidu.com', 0n, 0n, [])).to.not.be
+      .reverted;
     await assetCuration.addAssets(curationId, [
       {
         assetId: asset1,
@@ -259,13 +274,14 @@ describe('Test Curation', () => {
       },
     ];
     const curationId = await assetCuration.create.staticCall(
+      assetHub,
       'https://baidu.com',
       0n,
       expired ?? 0n,
       createData
     );
-    await expect(assetCuration.create('https://baidu.com', 0n, expired ?? 0n, createData)).to.not.be
-      .reverted;
+    await expect(assetCuration.create(assetHub, 'https://baidu.com', 0n, expired ?? 0n, createData))
+      .to.not.be.reverted;
     return curationId;
   }
 });

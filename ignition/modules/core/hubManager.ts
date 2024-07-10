@@ -23,7 +23,7 @@ export const AssetHubManagerModule = buildModule(Contracts.AssetHubManager, (m) 
   return { manager };
 });
 
-export const callLiteAssetHubManagerInit = (m: IgnitionModuleBuilder) => {
+export const callAssetHubManagerInit = (m: IgnitionModuleBuilder) => {
   const { manager } = m.useModule(AssetHubManagerModule);
   const { assetHubImpl } = m.useModule(AssetHubImplModule);
   const { collectNFTImpl } = m.useModule(CollectNFTImplModule(manager));

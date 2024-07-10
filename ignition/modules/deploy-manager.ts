@@ -1,6 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { callLiteAssetHubManagerInit } from "./core/hubManager";
+import { callAssetHubManagerInit } from "./core/hubManager";
 
-export default buildModule("DeployLiteAssetHubManager", (m) => {
-  return callLiteAssetHubManagerInit(m);
+export default buildModule("DeployAssetHubManager", (m) => {
+  return callAssetHubManagerInit(m);
 })
